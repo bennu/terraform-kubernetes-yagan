@@ -40,6 +40,6 @@ locals {
 
   # versions
   cilium_version     = "1.8.4"
-  rke_ver            = "v1.19.2-rancher1-1"
-  kubernetes_version = var.kubernetes_version != "" ? var.kubernetes_version : local.rke_ver
+  rke_version        = "v1.19.2-rancher1-1"
+  kubernetes_version = var.kubernetes_version != "" ? var.kubernetes_version : local.rke_version
 }

@@ -65,7 +65,7 @@ resource rke_cluster cluster {
       node_name         = nodes.value.name
       role              = [nodes.value.role]
       ssh_key           = var.private_key
-      user              = var.vm_user
+      user              = var.node_user
 
       # TODO: Add labels to nodes
     }
