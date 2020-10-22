@@ -34,7 +34,6 @@ locals {
     },
   var.kubeproxy_extra_args)
   network_plugin  = "none"
-  storage_classes = { storage_classes = var.storage_classes }
   resource_naming = length(random_string.resource_naming) == 0 ? var.resource_naming : random_string.resource_naming.0.result
   sans            = compact(concat(var.api_server_lb, var.sans))
 
