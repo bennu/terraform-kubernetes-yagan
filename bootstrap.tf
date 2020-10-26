@@ -169,10 +169,10 @@ resource rke_cluster cluster {
 
 resource local_file kube_cluster_yaml {
   # Workaround: https://github.com/rancher/rke/issues/705
-  count           = var.write_kubeconfig ? 1 : 0
-  content         = replace(rke_cluster.cluster.kube_config_yaml, local.api_access_regex, local.api_access)
-  filename        = format("%s/%s", path.root, "kube_config_cluster.yml")
-  file_permission = "0644"
+  count             = var.write_kubeconfig ? 1 : 0
+  file_permission   = "0644"
+  filename          = format("%s/%s", path.root, "kube_config_cluster.yml")
+  sensitive_content = replace(rke_cluster.cluster.kube_config_yaml, local.api_access_regex, local.api_access)
 }
 
 resource helm_release cilium {
