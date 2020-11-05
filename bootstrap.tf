@@ -50,9 +50,10 @@ resource rke_cluster cluster {
       [
         for type, node in var.nodes : [
           for n in node : {
-            ip   = n.ip
-            name = n.name
-            role = type
+            ip     = n.ip
+            name   = n.name
+            role   = type
+            labels = can(n.labels) ? n.labels : {}
           }
         ]
       ]
@@ -62,12 +63,11 @@ resource rke_cluster cluster {
       address           = nodes.value.ip
       hostname_override = nodes.value.name
       internal_address  = nodes.value.ip
+      labels            = nodes.value.labels
       node_name         = nodes.value.name
       role              = [nodes.value.role]
       ssh_key           = var.private_key
       user              = var.node_user
-
-      # TODO: Add labels to nodes
     }
   }
 
