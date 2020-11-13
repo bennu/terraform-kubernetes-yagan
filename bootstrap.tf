@@ -184,60 +184,53 @@ resource helm_release cilium {
   version    = local.cilium_version
   namespace  = "kube-system"
   set {
-    name  = "global.hubble.metrics.enabled"
+    name  = "hubble.metrics.enabled"
     value = var.hubble_metrics
   }
   values = [
     yamlencode(
       {
-        config = {
-          ipam = var.cilium_ipam
+        bpf = {
+          monitorAggregation = var.cilium_monitor
+          preallocateMaps    = var.cilium_allocate_bpf
+          waitForMount       = var.cilium_wait_bfp
         }
-        global = {
-          bpf = {
-            monitorAggregation = var.cilium_monitor
-            preallocateMaps    = var.cilium_allocate_bpf
-            waitForMount       = var.cilium_wait_bfp
+        cluster = {
+          name = local.cluster_name
+        }
+        debug = {
+          enabled = var.cilium_debug
+        }
+        ipam = {
+          mode = var.cilium_ipam
+        }
+        hubble = {
+          enabled       = var.hubble_enabled
+          listenAddress = ":4244"
+          relay = {
+            enabled = var.hubble_relay_enabled
           }
-          cluster = {
-            name = local.cluster_name
+          ui = {
+            enabled = var.hubble_ui_enabled
           }
-          debug = {
-            enabled = var.cilium_debug
-          }
-          hubble = {
-            enabled       = var.hubble_enabled
-            listenAddress = ":4244"
-            relay = {
-              enabled = var.hubble_relay_enabled
-            }
-            ui = {
-              enabled = var.hubble_ui_enabled
-            }
-          }
-          k8s = {
-            requireIPv4PodCIDR = var.cilium_require_ipv4_pod_cidr
-          }
-          nodeinit = {
-            enabled = var.cilium_node_init
-          }
-          operatorPrometheus = {
-            enabled = var.cilium_operator_prometheus_enabled
-          }
-          prometheus = {
-            enabled = var.cilium_prometheus_enabled
-          }
-          psp = {
-            enabled = var.cilium_psp_enabled
-          }
-          tunnel = var.cilium_tunnel
+        }
+        k8s = {
+          requireIPv4PodCIDR = var.cilium_require_ipv4_pod_cidr
         }
         nodeinit = {
-          restartPods = var.cilium_node_init_restart_pods
+          enabled = var.cilium_node_init
+          # restartPods       = var.cilium_node_init_restart_pods
+          priorityClassName = "system-cluster-critical"
         }
         operator = {
-          numReplicas = var.cilium_operator_replicas
+          numReplicas       = var.cilium_operator_replicas
+          priorityClassName = "system-cluster-critical"
         }
+        priorityClassName = "system-cluster-critical"
+        prometheus = {
+          enabled = var.cilium_prometheus_enabled
+        }
+        tunnel = var.cilium_tunnel
       }
     )
   ]
