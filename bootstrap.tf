@@ -175,6 +175,13 @@ resource local_file kube_cluster_yaml {
   content         = replace(rke_cluster.cluster.kube_config_yaml, local.api_access_regex, local.api_access)
 }
 
+resource local_file cluster_yaml {
+  count             = var.write_cluster_yaml ? 1 : 0
+  file_permission   = "0644"
+  filename          = format("%s/%s", path.root, "cluster.yml")
+  content_sensitive = rke_cluster.cluster.rke_cluster_yaml
+}
+
 resource helm_release cilium {
   depends_on = [rke_cluster.cluster]
   name       = "cilium"

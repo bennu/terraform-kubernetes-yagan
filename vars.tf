@@ -344,6 +344,10 @@ variable upgrade_max_unavailable_worker {
   description = "Max ammount of worker nodes that can be unavailable during upgrades"
   default     = "10%"
 }
+variable write_cluster_yaml {
+  description = "Save rke cluster yaml to a file"
+  default     = false
+}
 variable write_kubeconfig {
   description = "Save kubeconfig to a file"
   default     = true
