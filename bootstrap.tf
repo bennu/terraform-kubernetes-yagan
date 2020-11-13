@@ -179,7 +179,7 @@ resource local_file cluster_yaml {
   count             = var.write_cluster_yaml ? 1 : 0
   file_permission   = "0644"
   filename          = format("%s/%s", path.root, "cluster.yml")
-  content_sensitive = rke_cluster.cluster.rke_cluster_yaml
+  sensitive_content = rke_cluster.cluster.rke_cluster_yaml
 }
 
 resource helm_release cilium {
