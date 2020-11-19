@@ -1,5 +1,5 @@
 locals {
-  api_access       = format("https://%s", length(var.sans) > 0 ? var.sans[0] : var.api_server_lb[0])
+  api_access       = format("https://%s", length(var.sans) > 0 ? var.sans[0] : length(var.api_server_lb) > 0 ? var.api_server_lb[0] : rke_cluster.cluster.api_server_url)
   api_access_regex = "/https://\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}:6443/"
   cluster_name     = format("k8s-cluster-%s", local.resource_naming)
   etcd_extra_args  = merge({ election-timeout = "5000", heartbeat-interval = "500" }, var.etcd_extra_args)
@@ -38,7 +38,8 @@ locals {
   sans            = compact(concat(var.api_server_lb, var.sans))
 
   # versions
-  cilium_version     = "1.9.0"
-  rke_version        = "v1.19.3-rancher1-2"
-  kubernetes_version = var.kubernetes_version != "" ? var.kubernetes_version : local.rke_version
+  cilium_version      = "1.9.0"
+  kubernetes_version  = var.kubernetes_version != "" ? var.kubernetes_version : local.rke_version
+  rke_version         = "v1.19.3-rancher1-2"
+  vsphere_cpi_version = "gcr.io/cloud-provider-vsphere/cpi/release/manager:v1.2.1"
 }

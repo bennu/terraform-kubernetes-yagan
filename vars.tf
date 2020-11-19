@@ -37,7 +37,7 @@ variable cilium_monitor {
 }
 variable cilium_node_init {
   description = "Initialize nodes for cilium"
-  default     = true
+  default     = false
 }
 variable cilium_node_init_restart_pods {
   description = "Restart pods not managed by cilium"
@@ -74,6 +74,10 @@ variable cilium_tunnel {
 variable cilium_wait_bfp {
   description = "Wait for BPF to be present in order to work"
   default     = true
+}
+variable cloud_provider {
+  description = "Cloud provider to deploy"
+  default     = "none"
 }
 variable cluster_cidr {
   description = "Cluster CIDR for pods IP allocation"
@@ -351,4 +355,35 @@ variable write_cluster_yaml {
 variable write_kubeconfig {
   description = "Save kubeconfig to a file"
   default     = true
+}
+
+# vsphere cloud provider
+
+variable vsphere_username {
+  description = "vSphere username"
+  default     = ""
+}
+variable vsphere_port {
+  description = "vSphere port"
+  default     = 443
+}
+variable vsphere_insecure_flag {
+  description = "Do not verify tls cert"
+  default     = true
+}
+variable vsphere_password {
+  description = "vSphere password"
+  default     = ""
+}
+variable vsphere_server {
+  description = "vSphere server"
+  default     = ""
+}
+variable vsphere_datacenter {
+  description = "vSphere datacenter"
+  default     = ""
+}
+variable vsphere_cluster_id {
+  description = "vSphere cluster ID"
+  default     = ""
 }
