@@ -54,6 +54,7 @@ resource rke_cluster cluster {
             name   = n.name
             role   = type
             labels = can(n.labels) ? n.labels : {}
+            taints = can(n.taints) ? n.taints : []
           }
         ]
       ]
@@ -68,6 +69,24 @@ resource rke_cluster cluster {
       role              = [nodes.value.role]
       ssh_key           = var.private_key
       user              = var.node_user
+
+      dynamic taints {
+        for_each = flatten(
+          [
+            for taint in nodes.value.taints : {
+              key    = taint.key
+              value  = taint.value
+              effect = taint.effect
+            }
+          ]
+        )
+
+        content {
+          key    = taints.value.key
+          value  = taints.value.value
+          effect = taints.value.effect
+        }
+      }
     }
   }
 
@@ -225,8 +244,7 @@ resource helm_release cilium {
           requireIPv4PodCIDR = var.cilium_require_ipv4_pod_cidr
         }
         nodeinit = {
-          enabled = var.cilium_node_init
-          # restartPods       = var.cilium_node_init_restart_pods
+          enabled           = var.cilium_node_init
           priorityClassName = "system-cluster-critical"
         }
         operator = {

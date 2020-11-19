@@ -35,7 +35,7 @@ locals {
   var.kubeproxy_extra_args)
   network_plugin  = "none"
   resource_naming = length(random_string.resource_naming) == 0 ? var.resource_naming : random_string.resource_naming.0.result
-  sans            = compact(concat(var.api_server_lb, var.sans))
+  sans            = compact(concat(var.sans, var.api_server_lb))
 
   # versions
   cilium_version      = "1.9.0"
