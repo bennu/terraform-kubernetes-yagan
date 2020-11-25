@@ -149,7 +149,7 @@ variable etcd_s3_folder {
 }
 variable etcd_s3_region {
   description = "S3 region for storing etcd backups"
-  default     = ""
+  default     = "us-east-1"
 }
 variable etcd_s3_secret_key {
   description = "S3 account secret for storing etcd backups"
