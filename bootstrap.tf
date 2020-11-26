@@ -74,9 +74,9 @@ resource rke_cluster cluster {
         for_each = flatten(
           [
             for taint in nodes.value.taints : {
-              key    = taint.key
-              value  = taint.value
-              effect = taint.effect
+              key    = lookup(taint, "key", "")
+              value  = lookup(taint, "value", "")
+              effect = lookup(taint, "effect", "")
             }
           ]
         )
