@@ -38,8 +38,8 @@ locals {
   sans            = compact(concat(var.sans, var.api_server_lb))
 
   # versions
-  cilium_version      = "1.9.0"
+  cilium_version      = "1.9.1"
   kubernetes_version  = var.kubernetes_version != "" ? var.kubernetes_version : local.rke_version
-  rke_version         = "v1.19.3-rancher1-2"
+  rke_version         = "v1.19.4-rancher1-1"
   vsphere_cpi_version = "gcr.io/cloud-provider-vsphere/cpi/release/manager:v1.2.1"
 }
