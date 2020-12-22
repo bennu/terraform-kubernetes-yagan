@@ -202,7 +202,7 @@ resource local_file cluster_yaml {
 }
 
 resource helm_release cilium {
-  depends_on = [rke_cluster.cluster]
+  depends_on = [local_file.kube_cluster_yaml,rke_cluster.cluster]
   name       = "cilium"
   atomic     = true
   repository = "https://helm.cilium.io"
