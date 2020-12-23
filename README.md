@@ -4,9 +4,15 @@
 
 | Name | Version |
 |------|---------|
-| terraform | >= 0.13 |
-| rke | >= 1.1.3 |
+| terraform | `>= 0.13` |
+| rke | `>= 1.1.3` |
 
+### Providers
+
+| Name | Version |
+|------|---------|
+| helm | `2.0.1` |
+| kubernetes | `1.13.3` |
 
 ## Some considerations
 
