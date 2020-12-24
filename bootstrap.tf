@@ -31,6 +31,13 @@ resource rke_cluster cluster {
   addon_job_timeout = var.addon_job_timeout
   addons_include    = var.addons_include
 
+  private_registries {
+    url        = var.registry_url
+    user       = var.registry_username
+    password   = var.registry_password
+    is_default = var.registry_activate
+  }
+
   upgrade_strategy {
     drain                        = var.drain_on_upgrade
     max_unavailable_controlplane = var.upgrade_max_unavailable_controlplane
