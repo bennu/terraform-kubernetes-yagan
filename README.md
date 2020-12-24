@@ -106,6 +106,10 @@
 | node_user | Default user to connect to nodes as | `string` | `"sles"` | no |
 | pod_eviction_timeout | n/a | `string` | `"30s"` | no |
 | pod_security_policy | Deploy a permissive default set of PSP | `bool` | `false` | no |
+| registry_activate | Able to activate registry server | `bool` | `false` | no |
+| registry_password | Password access for Registry server | `string` | `""` | no |
+| registry_url | Registry URL for images | `string` | `""` | no |
+| registry_username | Username access for Registry server | `string` | `""` | no |
 | resource_naming | An arbitrary name can be prepend to resources. If not set, a random prefix will be created instead | `string` | `""` | no |
 | rke_authorization | RKE authorization mode | `string` | `"rbac"` | no |
 | sans | An alternative subject alternate name (SAN) list for api-server tls certs | `list` | `[]` | no |
