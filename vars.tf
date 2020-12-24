@@ -357,6 +357,24 @@ variable write_kubeconfig {
   default     = true
 }
 
+# registry configuration
+variable registry_url {
+  description = "Registry URL for images"
+  default     = ""
+}
+variable registry_username {
+  description = "Username access for Registry server"
+  default     = ""
+}
+variable registry_password {
+  description = "Password access for Registry server"
+  default     = ""
+}
+variable registry_activate {
+  description = "Able to activate registry server"
+  default     = false
+}
+
 # vsphere cloud provider
 
 variable vsphere_username {
