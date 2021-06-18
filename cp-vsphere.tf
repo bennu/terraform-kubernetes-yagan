@@ -1,6 +1,5 @@
 # vSphere cloud provider
-
-resource kubernetes_secret cpi_vsphere_creds {
+resource "kubernetes_secret" "cpi_vsphere_creds" {
   count = var.cloud_provider == "vsphere" ? 1 : 0
   metadata {
     name      = "cpi-vsphere-creds"
@@ -13,7 +12,7 @@ resource kubernetes_secret cpi_vsphere_creds {
   }
 }
 
-resource kubernetes_config_map cloud_config_vsphere {
+resource "kubernetes_config_map" "cloud_config_vsphere" {
   count = var.cloud_provider == "vsphere" ? 1 : 0
   metadata {
     name      = "cloud-config"
@@ -41,7 +40,7 @@ resource kubernetes_config_map cloud_config_vsphere {
 }
 
 # https://github.com/kubernetes/cloud-provider-vsphere/blob/v1.2.1/manifests/controller-manager/cloud-controller-manager-roles.yaml
-resource kubernetes_cluster_role vsphere_system_cloud_controller_manager {
+resource "kubernetes_cluster_role" "vsphere_system_cloud_controller_manager" {
   count = var.cloud_provider == "vsphere" ? 1 : 0
   metadata {
     name = "system:cloud-controller-manager"
@@ -104,7 +103,7 @@ resource kubernetes_cluster_role vsphere_system_cloud_controller_manager {
 
 # https://github.com/kubernetes/cloud-provider-vsphere/blob/v1.2.1/manifests/controller-manager/cloud-controller-manager-role-bindings.yaml
 
-resource kubernetes_role_binding vsphere_servicecatalog_apiserver_authentication_reader {
+resource "kubernetes_role_binding" "vsphere_servicecatalog_apiserver_authentication_reader" {
   count = var.cloud_provider == "vsphere" ? 1 : 0
   metadata {
     name      = "servicecatalog.k8s.io:apiserver-authentication-reader"
@@ -131,7 +130,7 @@ resource kubernetes_role_binding vsphere_servicecatalog_apiserver_authentication
   }
 }
 
-resource kubernetes_cluster_role_binding vsphere_system_cloud_controller_manager {
+resource "kubernetes_cluster_role_binding" "vsphere_system_cloud_controller_manager" {
   count = var.cloud_provider == "vsphere" ? 1 : 0
   metadata {
     name = "system:cloud-controller-manager"
@@ -159,7 +158,7 @@ resource kubernetes_cluster_role_binding vsphere_system_cloud_controller_manager
 
 # https://github.com/kubernetes/cloud-provider-vsphere/blob/v1.2.1/manifests/controller-manager/vsphere-cloud-controller-manager-ds.yaml
 
-resource kubernetes_service_account vsphere_cloud_controller_manager {
+resource "kubernetes_service_account" "vsphere_cloud_controller_manager" {
   count = var.cloud_provider == "vsphere" ? 1 : 0
   metadata {
     name      = "cloud-controller-manager"
@@ -169,7 +168,7 @@ resource kubernetes_service_account vsphere_cloud_controller_manager {
   automount_service_account_token = true
 }
 
-resource kubernetes_daemonset vsphere_cloud_controller_manager {
+resource "kubernetes_daemonset" "vsphere_cloud_controller_manager" {
   count = var.cloud_provider == "vsphere" ? 1 : 0
   metadata {
     name      = "vsphere-cloud-controller-manager"
@@ -258,7 +257,7 @@ resource kubernetes_daemonset vsphere_cloud_controller_manager {
   }
 }
 
-resource kubernetes_service vsphere_cloud_controller_manager {
+resource "kubernetes_service" "vsphere_cloud_controller_manager" {
   count = var.cloud_provider == "vsphere" ? 1 : 0
   metadata {
     name      = "vsphere-cloud-controller-manager"
@@ -285,8 +284,7 @@ resource kubernetes_service vsphere_cloud_controller_manager {
 }
 
 # vSphere cloud storage
-
-resource kubernetes_secret csi_vsphere_creds {
+resource "kubernetes_secret" "csi_vsphere_creds" {
   count = var.cloud_provider == "vsphere" ? 1 : 0
   metadata {
     name      = "csi-vsphere-creds"
@@ -310,7 +308,7 @@ EOF
 
 # https://github.com/kubernetes-sigs/vsphere-csi-driver/blob/9a23359530264ecf792f5a7badfbb32b2b01be40/manifests/v2.0.1/vsphere-67u3/vanilla/rbac/vsphere-csi-controller-rbac.yaml
 
-resource kubernetes_service_account vsphere_csi_controller {
+resource "kubernetes_service_account" "vsphere_csi_controller" {
   count = var.cloud_provider == "vsphere" ? 1 : 0
   metadata {
     name      = "vsphere-csi-controller"
@@ -319,7 +317,7 @@ resource kubernetes_service_account vsphere_csi_controller {
   automount_service_account_token = true
 }
 
-resource kubernetes_cluster_role vsphere_csi_controller_role {
+resource "kubernetes_cluster_role" "vsphere_csi_controller_role" {
   count = var.cloud_provider == "vsphere" ? 1 : 0
   metadata {
     name = "vsphere-csi-controller-role"
@@ -368,7 +366,7 @@ resource kubernetes_cluster_role vsphere_csi_controller_role {
   }
 }
 
-resource kubernetes_cluster_role_binding vsphere_csi_controller_binding {
+resource "kubernetes_cluster_role_binding" "vsphere_csi_controller_binding" {
   count = var.cloud_provider == "vsphere" ? 1 : 0
   metadata {
     name = "vsphere-csi-controller-binding"
@@ -389,7 +387,7 @@ resource kubernetes_cluster_role_binding vsphere_csi_controller_binding {
 
 # https://github.com/kubernetes-sigs/vsphere-csi-driver/blob/9a23359530264ecf792f5a7badfbb32b2b01be40/manifests/v2.0.1/vsphere-67u3/vanilla/deploy/vsphere-csi-controller-deployment.yaml
 
-resource kubernetes_deployment vsphere_csi_controller {
+resource "kubernetes_deployment" "vsphere_csi_controller" {
   count = var.cloud_provider == "vsphere" ? 1 : 0
   metadata {
     name      = "vsphere-csi-controller"
@@ -599,7 +597,7 @@ resource kubernetes_deployment vsphere_csi_controller {
   }
 }
 
-resource kubernetes_csi_driver csi_vsphere_vmware_com {
+resource "kubernetes_csi_driver" "csi_vsphere_vmware_com" {
   count = var.cloud_provider == "vsphere" ? 1 : 0
   metadata {
     name = "csi.vsphere.vmware.com"
@@ -613,7 +611,7 @@ resource kubernetes_csi_driver csi_vsphere_vmware_com {
 
 # https://github.com/kubernetes-sigs/vsphere-csi-driver/blob/9a23359530264ecf792f5a7badfbb32b2b01be40/manifests/v2.0.1/vsphere-67u3/vanilla/deploy/vsphere-csi-node-ds.yaml
 
-resource kubernetes_daemonset vsphere_csi_node {
+resource "kubernetes_daemonset" "vsphere_csi_node" {
   count = var.cloud_provider == "vsphere" ? 1 : 0
   metadata {
     name      = "vsphere-csi-node"

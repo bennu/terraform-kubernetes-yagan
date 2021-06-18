@@ -52,6 +52,7 @@
 | cilium_tunnel | Encapsulation tunnel to use | `string` | `"vxlan"` | no |
 | cilium_wait_bfp | Wait for BPF to be present in order to work | `bool` | `true` | no |
 | cloud_provider | Cloud provider to deploy | `string` | `"none"` | no |
+| cloud_provider_vsphere_in_tree | vSphere Cloud Provider in-tree configuration, list of maps | `list(map(string))` | `[]` | no |
 | cluster_cidr | Cluster CIDR for pods IP allocation | `string` | `"10.42.0.0/16"` | no |
 | cluster_domain | Domain for cluster-wide service discovery | `string` | `"cluster.local"` | no |
 | delete_local_data_on_drain | Delete local data on node drain | `bool` | `true` | no |

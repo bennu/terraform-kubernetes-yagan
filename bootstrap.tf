@@ -1,4 +1,4 @@
-resource rke_cluster cluster {
+resource "rke_cluster" "cluster" {
   cluster_name          = local.cluster_name
   ignore_docker_version = var.ignore_docker_version
   kubernetes_version    = local.kubernetes_version
@@ -52,7 +52,7 @@ resource rke_cluster cluster {
     }
   }
 
-  dynamic nodes {
+  dynamic "nodes" {
     for_each = flatten(
       [
         for type, node in var.nodes : [
@@ -77,7 +77,7 @@ resource rke_cluster cluster {
       ssh_key           = var.private_key
       user              = var.node_user
 
-      dynamic taints {
+      dynamic "taints" {
         for_each = flatten(
           [
             for taint in nodes.value.taints : {
@@ -92,6 +92,33 @@ resource rke_cluster cluster {
           key    = taints.value.key
           value  = taints.value.value
           effect = taints.value.effect
+        }
+      }
+    }
+  }
+
+  # Cloud Provider vSphere In-tree
+  dynamic "cloud_provider" {
+    for_each = var.cloud_provider_vsphere_in_tree
+    content {
+      name = lookup(cloud_provider.value, "type", null)
+      vsphere_cloud_provider {
+        virtual_center {
+          name        = lookup(cloud_provider.value, "server_name", null)
+          user        = lookup(cloud_provider.value, "user", null)
+          password    = lookup(cloud_provider.value, "password", null)
+          port        = lookup(cloud_provider.value, "port", null)
+          datacenters = lookup(cloud_provider.value, "datacenters", null)
+        }
+        workspace {
+          datacenter        = lookup(cloud_provider.value, "datacenters", null)
+          server            = lookup(cloud_provider.value, "server_name", null)
+          default_datastore = lookup(cloud_provider.value, "default_datastore", null)
+          folder            = lookup(cloud_provider.value, "folder", null)
+          resourcepool_path = lookup(cloud_provider.value, "resourcepool_path", null)
+        }
+        global {
+          insecure_flag = lookup(cloud_provider.value, "insecure_flag", null)
         }
       }
     }
@@ -193,7 +220,7 @@ resource rke_cluster cluster {
   }
 }
 
-resource local_file kube_cluster_yaml {
+resource "local_file" "kube_cluster_yaml" {
   # Workaround: https://github.com/rancher/rke/issues/705
   count             = var.write_kubeconfig ? 1 : 0
   file_permission   = "0644"
@@ -201,14 +228,14 @@ resource local_file kube_cluster_yaml {
   sensitive_content = replace(rke_cluster.cluster.kube_config_yaml, local.api_access_regex, local.api_access)
 }
 
-resource local_file cluster_yaml {
+resource "local_file" "cluster_yaml" {
   count             = var.write_cluster_yaml ? 1 : 0
   file_permission   = "0644"
   filename          = format("%s/%s", path.root, "cluster.yml")
   sensitive_content = rke_cluster.cluster.rke_cluster_yaml
 }
 
-resource helm_release cilium {
+resource "helm_release" "cilium" {
   depends_on = [local_file.kube_cluster_yaml, rke_cluster.cluster]
   name       = "cilium"
   atomic     = true
