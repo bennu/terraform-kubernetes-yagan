@@ -95,6 +95,10 @@ variable "dns_provider" {
   description = "Cluster DNS service provider"
   default     = "coredns"
 }
+variable "dns_upstream_nameservers" {
+  description = "DNS upstream nameservers for external query"
+  default     = []
+}
 variable "drain_grace_period" {
   description = "Grace period to wait for node to drain"
   default     = "-1"

@@ -21,7 +21,8 @@ resource "rke_cluster" "cluster" {
   }
 
   dns {
-    provider = var.dns_provider
+    provider             = var.dns_provider
+    upstream_nameservers = var.dns_upstream_nameservers
   }
 
   monitoring {
