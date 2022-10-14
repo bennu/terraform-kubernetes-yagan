@@ -28,5 +28,5 @@ output "kube_admin_user" {
 }
 output "kubeconfig" {
   description = "Kubernetes admin kubeconfig"
-  value       = local_file.kube_cluster_yaml
+  value       = local_sensitive_file.kube_cluster_yaml
 }

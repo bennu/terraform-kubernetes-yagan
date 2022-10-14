@@ -1,4 +1,5 @@
 resource "rke_cluster" "cluster" {
+  depends_on            = [null_resource.node_cleanup]
   cluster_name          = local.cluster_name
   ignore_docker_version = var.ignore_docker_version
   kubernetes_version    = local.kubernetes_version
@@ -17,7 +18,10 @@ resource "rke_cluster" "cluster" {
   }
 
   ingress {
-    provider = var.ingress_provider
+    provider     = var.ingress_provider
+    http_port    = 80
+    https_port   = 443
+    network_mode = "hostPort"
   }
 
   dns {
@@ -55,11 +59,11 @@ resource "rke_cluster" "cluster" {
   dynamic "nodes" {
     for_each = flatten(
       [
-        for type, node in var.nodes : [
+        for name, node in var.nodes : [
           for n in node : {
             ip     = n.ip
-            name   = n.name
-            role   = type
+            name   = name
+            role   = n.type
             labels = can(n.labels) ? n.labels : {}
             taints = can(n.taints) ? n.taints : []
           }
@@ -73,7 +77,7 @@ resource "rke_cluster" "cluster" {
       internal_address  = nodes.value.ip
       labels            = nodes.value.labels
       node_name         = nodes.value.name
-      role              = [nodes.value.role]
+      role              = nodes.value.role
       ssh_key           = var.private_key
       user              = var.node_user
 
@@ -126,34 +130,37 @@ resource "rke_cluster" "cluster" {
 
   # kubernetes services
 
-  ## etcd
   services {
-    etcd {
-      extra_args  = local.etcd_extra_args
-      extra_binds = var.etcd_extra_binds
-      extra_env   = var.etcd_extra_env
+    ## etcd
+    dynamic "etcd" {
+      for_each = var.external_etcd ? [1] : []
+      content {
+        extra_args  = local.etcd_extra_args
+        extra_binds = var.etcd_extra_binds
+        extra_env   = var.etcd_extra_env
 
-      backup_config {
-        interval_hours = var.etcd_backup_interval_hours
-        retention      = var.etcd_backup_retention
+        backup_config {
+          interval_hours = var.etcd_backup_interval_hours
+          retention      = var.etcd_backup_retention
 
-        s3_backup_config {
-          access_key  = var.etcd_s3_access_key
-          bucket_name = var.etcd_s3_bucket_name
-          endpoint    = var.etcd_s3_endpoint
-          folder      = var.etcd_s3_folder
-          region      = var.etcd_s3_region
-          secret_key  = var.etcd_s3_secret_key
+          s3_backup_config {
+            access_key  = var.etcd_s3_access_key
+            bucket_name = var.etcd_s3_bucket_name
+            endpoint    = var.etcd_s3_endpoint
+            folder      = var.etcd_s3_folder
+            region      = var.etcd_s3_region
+            secret_key  = var.etcd_s3_secret_key
+          }
         }
       }
     }
 
     ## api-server
     kube_api {
-      always_pull_images       = var.always_pull_images
-      extra_args               = var.kube_api_extra_args
-      extra_binds              = var.kube_api_extra_binds
-      extra_env                = var.kube_api_extra_env
+      always_pull_images = var.always_pull_images
+      extra_args         = var.kube_api_extra_args
+      extra_binds        = var.kube_api_extra_binds
+      # extra_env                = var.kube_api_extra_env
       pod_security_policy      = var.pod_security_policy
       service_cluster_ip_range = var.service_cluster_ip_range
       service_node_port_range  = var.service_node_port_range
@@ -220,23 +227,24 @@ resource "rke_cluster" "cluster" {
   }
 }
 
-resource "local_file" "kube_cluster_yaml" {
+resource "local_sensitive_file" "kube_cluster_yaml" {
   # Workaround: https://github.com/rancher/rke/issues/705
-  count             = var.write_kubeconfig ? 1 : 0
-  file_permission   = "0644"
-  filename          = format("%s/%s", path.root, "kube_config_cluster.yml")
-  sensitive_content = replace(rke_cluster.cluster.kube_config_yaml, local.api_access_regex, local.api_access)
+  count           = var.write_kubeconfig ? 1 : 0
+  file_permission = "0644"
+  filename        = format("%s/%s", path.root, "kube_config_cluster.yaml")
+  content         = replace(rke_cluster.cluster.kube_config_yaml, local.api_access_regex, local.api_access)
 }
 
-resource "local_file" "cluster_yaml" {
-  count             = var.write_cluster_yaml ? 1 : 0
-  file_permission   = "0644"
-  filename          = format("%s/%s", path.root, "cluster.yml")
-  sensitive_content = rke_cluster.cluster.rke_cluster_yaml
+resource "local_sensitive_file" "cluster_yaml" {
+  count           = var.write_cluster_yaml ? 1 : 0
+  file_permission = "0644"
+  filename        = format("%s/%s", path.root, "cluster.yaml")
+  content         = rke_cluster.cluster.rke_cluster_yaml
 }
 
 resource "helm_release" "cilium" {
-  depends_on = [local_file.kube_cluster_yaml, rke_cluster.cluster]
+  count      = var.install_cilium ? 1 : 0
+  depends_on = [local_sensitive_file.kube_cluster_yaml, rke_cluster.cluster]
   name       = "cilium"
   atomic     = true
   repository = "https://helm.cilium.io"
@@ -293,4 +301,83 @@ resource "helm_release" "cilium" {
       }
     )
   ]
+}
+
+resource "helm_release" "calico" {
+  count            = var.install_calico ? 1 : 0
+  depends_on       = [local_sensitive_file.kube_cluster_yaml, rke_cluster.cluster]
+  name             = "calico"
+  repository       = "https://projectcalico.docs.tigera.io/charts"
+  chart            = "tigera-operator"
+  version          = local.calico_version
+  namespace        = "tigera-operator"
+  create_namespace = true
+  timeout          = 300
+  atomic           = true
+  values = [
+    yamlencode({
+      installation = {
+        cni = {
+          type = "Calico"
+          ipam = {
+            type = "Calico"
+          }
+        }
+        calicoNetwork = {
+          bgp = "Disabled"
+          ipPools = [{
+            cidr          = var.cluster_cidr
+            encapsulation = "VXLAN"
+            natOutgoing   = "Enabled"
+            nodeSelector  = "all()"
+            blockSize     = var.node_cidr_mask_size
+          }]
+        }
+      }
+    })
+  ]
+}
+
+resource "helm_release" "argocd" {
+  count            = var.install_argocd ? 1 : 0
+  depends_on       = [helm_release.cilium, helm_release.calico, local_sensitive_file.kube_cluster_yaml]
+  name             = "argocd"
+  repository       = "https://argoproj.github.io/argo-helm"
+  chart            = "argo-cd"
+  version          = local.argocd_version
+  namespace        = "argo-cd"
+  create_namespace = true
+  timeout          = 210
+  set {
+    name  = "server.extraArgs"
+    value = "{--insecure,--request-timeout='5m'}"
+  }
+}
+
+resource "null_resource" "node_cleanup" {
+  for_each = var.nodes
+  triggers = {
+    node_user   = var.node_user
+    private_key = var.private_key
+    node_name   = each.key
+    node_ip     = each.value[0].ip
+  }
+  connection {
+    user        = self.triggers.node_user
+    host        = self.triggers.node_ip
+    private_key = self.triggers.private_key
+  }
+
+  provisioner "file" {
+    when        = destroy
+    source      = "${path.module}/files/rkecleanup.bash"
+    destination = "/tmp/cleanup.bash"
+  }
+
+  provisioner "remote-exec" {
+    when = destroy
+    inline = [
+      "chmod +x /tmp/cleanup.bash && /tmp/cleanup.bash -f -i"
+    ]
+  }
 }
