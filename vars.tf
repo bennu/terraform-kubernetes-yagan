@@ -87,6 +87,10 @@ variable "cluster_domain" {
   description = "Domain for cluster-wide service discovery"
   default     = "cluster.local"
 }
+variable "cluster_name" {
+  description = "A name for the cluster to be created"
+  default     = ""
+}
 variable "delete_local_data_on_drain" {
   description = "Delete local data on node drain"
   default     = true
@@ -106,6 +110,10 @@ variable "drain_on_upgrade" {
 variable "drain_timeout" {
   description = "Time to wait for node to drain"
   default     = 60
+}
+variable "enable_cri_dockerd" {
+  description = "Decides if enable CRI dockerd for kubelet, required on k8s 1.23+"
+  default     = true
 }
 variable "enforce_node_allocatable" {
   description = "Enforce allocatable resources"
@@ -159,6 +167,10 @@ variable "eviction_hard" {
   description = "Params for eviction"
   default     = "memory.available<15%,nodefs.available<10%,nodefs.inodesFree<5%,imagefs.available<15%,imagefs.inodesFree<20%"
 }
+variable "external_etcd" {
+  description = "Decides if the etcd servers will be outsourced"
+  default     = false
+}
 variable "fail_swap_on" {
   description = "Do not allow to deploy kubernetes on systems with swap partitions enabled"
   default     = true
@@ -198,6 +210,18 @@ variable "ignore_docker_version" {
 variable "ingress_provider" {
   description = "Deploy RKE built-in ingress controller"
   default     = "none"
+}
+variable "install_argocd" {
+  description = "Decides if Argo CD operator must be installed after the cluster is deployed"
+  default     = false
+}
+variable "install_calico" {
+  description = "Decides if Calico CNI must be instaled"
+  default     = true
+}
+variable "install_cilium" {
+  description = "Decides if Cilium CNI must be installed"
+  default     = true
 }
 variable "kube_api_extra_args" {
   description = "A map of extra args for api-server"
