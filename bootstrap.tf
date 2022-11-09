@@ -157,10 +157,10 @@ resource "rke_cluster" "cluster" {
 
     ## api-server
     kube_api {
-      always_pull_images = var.always_pull_images
-      extra_args         = var.kube_api_extra_args
-      extra_binds        = var.kube_api_extra_binds
-      # extra_env                = var.kube_api_extra_env
+      always_pull_images       = var.always_pull_images
+      extra_args               = var.kube_api_extra_args
+      extra_binds              = var.kube_api_extra_binds
+      extra_env                = var.kube_api_extra_env
       pod_security_policy      = var.pod_security_policy
       service_cluster_ip_range = var.service_cluster_ip_range
       service_node_port_range  = var.service_node_port_range
@@ -224,6 +224,9 @@ resource "rke_cluster" "cluster" {
       extra_binds = var.scheduler_extra_binds
       extra_env   = var.scheduler_extra_env
     }
+  }
+  lifecycle {
+    ignore_changes = [services]
   }
 }
 
@@ -377,7 +380,7 @@ resource "null_resource" "node_cleanup" {
   provisioner "remote-exec" {
     when = destroy
     inline = [
-      "chmod +x /tmp/cleanup.bash && /tmp/cleanup.bash -f -i"
+      "chmod +x /tmp/cleanup.bash && /tmp/cleanup.bash -f -i", "reboot"
     ]
   }
 }

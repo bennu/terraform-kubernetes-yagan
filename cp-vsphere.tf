@@ -2,7 +2,8 @@
 # https://raw.githubusercontent.com/kubernetes/cloud-provider-vsphere/release-1.23/releases/v1.23/vsphere-cloud-controller-manager.yaml
 
 resource "kubernetes_service_account" "vsphere_cloud_controller_manager" {
-  count = var.cloud_provider == "vsphere" ? 1 : 0
+  count      = var.cloud_provider == "vsphere" ? 1 : 0
+  depends_on = [helm_release.cilium, helm_release.calico, local_sensitive_file.kube_cluster_yaml]
   metadata {
     name      = "cloud-controller-manager"
     namespace = "kube-system"
@@ -16,7 +17,8 @@ resource "kubernetes_service_account" "vsphere_cloud_controller_manager" {
 }
 
 resource "kubernetes_secret" "cpi_vsphere_creds" {
-  count = var.cloud_provider == "vsphere" ? 1 : 0
+  count      = var.cloud_provider == "vsphere" ? 1 : 0
+  depends_on = [helm_release.cilium, helm_release.calico, local_sensitive_file.kube_cluster_yaml]
   metadata {
     name      = "vsphere-cloud-secret"
     namespace = "kube-system"
@@ -30,10 +32,15 @@ resource "kubernetes_secret" "cpi_vsphere_creds" {
     format("%s.username", var.vsphere_server) = var.vsphere_username
     format("%s.password", var.vsphere_server) = var.vsphere_password
   }
+  
+  lifecycle {
+    ignore_changes = [metadata]
+  }
 }
 
 resource "kubernetes_config_map" "cloud_config_vsphere" {
-  count = var.cloud_provider == "vsphere" ? 1 : 0
+  count      = var.cloud_provider == "vsphere" ? 1 : 0
+  depends_on = [helm_release.cilium, helm_release.calico, local_sensitive_file.kube_cluster_yaml]
   metadata {
     name      = "vsphere-cloud-config"
     namespace = "kube-system"
@@ -66,7 +73,8 @@ resource "kubernetes_config_map" "cloud_config_vsphere" {
 }
 
 resource "kubernetes_role_binding" "vsphere_servicecatalog_apiserver_authentication_reader" {
-  count = var.cloud_provider == "vsphere" ? 1 : 0
+  count      = var.cloud_provider == "vsphere" ? 1 : 0
+  depends_on = [helm_release.cilium, helm_release.calico, local_sensitive_file.kube_cluster_yaml]
   metadata {
     name      = "servicecatalog.k8s.io:apiserver-authentication-reader"
     namespace = "kube-system"
@@ -79,8 +87,8 @@ resource "kubernetes_role_binding" "vsphere_servicecatalog_apiserver_authenticat
   subject {
     api_group = ""
     kind      = "ServiceAccount"
-    name      = kubernetes_service_account.vsphere_cloud_controller_manager.0.metadata.0.name      #"cloud-controller-manager" 
-    namespace = kubernetes_service_account.vsphere_cloud_controller_manager.0.metadata.0.namespace #"kube-system"
+    name      = kubernetes_service_account.vsphere_cloud_controller_manager.0.metadata.0.name
+    namespace = kubernetes_service_account.vsphere_cloud_controller_manager.0.metadata.0.namespace
   }
 
   subject {
@@ -97,7 +105,8 @@ resource "kubernetes_role_binding" "vsphere_servicecatalog_apiserver_authenticat
 }
 
 resource "kubernetes_cluster_role_binding" "vsphere_system_cloud_controller_manager" {
-  count = var.cloud_provider == "vsphere" ? 1 : 0
+  count      = var.cloud_provider == "vsphere" ? 1 : 0
+  depends_on = [helm_release.cilium, helm_release.calico, local_sensitive_file.kube_cluster_yaml]
   metadata {
     name = "system:cloud-controller-manager"
     labels = {
@@ -127,7 +136,8 @@ resource "kubernetes_cluster_role_binding" "vsphere_system_cloud_controller_mana
 }
 
 resource "kubernetes_cluster_role" "vsphere_system_cloud_controller_manager" {
-  count = var.cloud_provider == "vsphere" ? 1 : 0
+  count      = var.cloud_provider == "vsphere" ? 1 : 0
+  depends_on = [helm_release.cilium, helm_release.calico, local_sensitive_file.kube_cluster_yaml]
   metadata {
     name = "system:cloud-controller-manager"
     labels = {
@@ -291,14 +301,19 @@ resource "kubernetes_daemonset" "vsphere_cloud_controller_manager" {
 # 
 
 resource "kubernetes_namespace" "vsphere_csi_namespace" {
-  count = var.cloud_provider == "vsphere" ? 1 : 0
+  count      = var.cloud_provider == "vsphere" ? 1 : 0
+  depends_on = [helm_release.cilium, helm_release.calico, local_sensitive_file.kube_cluster_yaml]
   metadata {
     name = "vmware-system-csi"
+  }
+  lifecycle {
+    ignore_changes = [metadata]
   }
 }
 
 resource "kubernetes_secret" "csi_vsphere_creds" {
-  count = var.cloud_provider == "vsphere" ? 1 : 0
+  count      = var.cloud_provider == "vsphere" ? 1 : 0
+  depends_on = [helm_release.cilium, helm_release.calico, local_sensitive_file.kube_cluster_yaml]
   metadata {
     name      = "vsphere-config-secret"
     namespace = kubernetes_namespace.vsphere_csi_namespace.0.metadata.0.name
@@ -317,6 +332,9 @@ port = "${var.vsphere_port}"
 datacenters = "${var.vsphere_datacenter}"
     EOF
   }
+  lifecycle {
+    ignore_changes = [metadata]
+  }
 }
 
 # vSphere CSI Driver
@@ -324,7 +342,7 @@ datacenters = "${var.vsphere_datacenter}"
 
 resource "kubernetes_csi_driver_v1" "vsphere_csi_vmware_com" {
   count      = var.cloud_provider == "vsphere" ? 1 : 0
-  depends_on = [local_sensitive_file.kube_cluster_yaml]
+  depends_on = [helm_release.cilium, helm_release.calico, local_sensitive_file.kube_cluster_yaml]
   metadata {
     name = "csi.vsphere.vmware.com"
   }
@@ -337,7 +355,8 @@ resource "kubernetes_csi_driver_v1" "vsphere_csi_vmware_com" {
 }
 
 resource "kubernetes_service_account" "vsphere_csi_controller" {
-  count = var.cloud_provider == "vsphere" ? 1 : 0
+  count      = var.cloud_provider == "vsphere" ? 1 : 0
+  depends_on = [helm_release.cilium, helm_release.calico, local_sensitive_file.kube_cluster_yaml]
   metadata {
     name      = "vsphere-csi-controller"
     namespace = kubernetes_namespace.vsphere_csi_namespace.0.metadata.0.name
@@ -346,7 +365,8 @@ resource "kubernetes_service_account" "vsphere_csi_controller" {
 }
 
 resource "kubernetes_cluster_role" "vsphere_csi_controller_role" {
-  count = var.cloud_provider == "vsphere" ? 1 : 0
+  count      = var.cloud_provider == "vsphere" ? 1 : 0
+  depends_on = [helm_release.cilium, helm_release.calico, local_sensitive_file.kube_cluster_yaml]
   metadata {
     name = "vsphere-csi-controller-role"
   }
@@ -480,7 +500,8 @@ resource "kubernetes_cluster_role_binding" "vsphere_csi_controller_binding" {
 }
 
 resource "kubernetes_service_account" "vsphere_csi_node" {
-  count = var.cloud_provider == "vsphere" ? 1 : 0
+  count      = var.cloud_provider == "vsphere" ? 1 : 0
+  depends_on = [helm_release.cilium, helm_release.calico, local_sensitive_file.kube_cluster_yaml]
   metadata {
     name      = "vsphere-csi-node"
     namespace = kubernetes_namespace.vsphere_csi_namespace.0.metadata.0.name
@@ -489,7 +510,8 @@ resource "kubernetes_service_account" "vsphere_csi_node" {
 }
 
 resource "kubernetes_cluster_role" "vsphere_csi_node" {
-  count = var.cloud_provider == "vsphere" ? 1 : 0
+  count      = var.cloud_provider == "vsphere" ? 1 : 0
+  depends_on = [helm_release.cilium, helm_release.calico, local_sensitive_file.kube_cluster_yaml]
   metadata {
     name = "vsphere-csi-node"
   }
@@ -508,7 +530,8 @@ resource "kubernetes_cluster_role" "vsphere_csi_node" {
 }
 
 resource "kubernetes_cluster_role_binding" "vsphere_csi_node_cluster_role_binding" {
-  count = var.cloud_provider == "vsphere" ? 1 : 0
+  count      = var.cloud_provider == "vsphere" ? 1 : 0
+  depends_on = [helm_release.cilium, helm_release.calico, local_sensitive_file.kube_cluster_yaml]
   metadata {
     name = "vsphere-csi-node-cluster-role-binding"
   }
@@ -527,7 +550,8 @@ resource "kubernetes_cluster_role_binding" "vsphere_csi_node_cluster_role_bindin
 }
 
 resource "kubernetes_role" "vsphere_csi_node" {
-  count = var.cloud_provider == "vsphere" ? 1 : 0
+  count      = var.cloud_provider == "vsphere" ? 1 : 0
+  depends_on = [helm_release.cilium, helm_release.calico, local_sensitive_file.kube_cluster_yaml]
   metadata {
     name      = "vsphere-csi-node-role"
     namespace = kubernetes_namespace.vsphere_csi_namespace.0.metadata.0.name
@@ -541,7 +565,8 @@ resource "kubernetes_role" "vsphere_csi_node" {
 }
 
 resource "kubernetes_role_binding" "vsphere_csi_node_binding" {
-  count = var.cloud_provider == "vsphere" ? 1 : 0
+  count      = var.cloud_provider == "vsphere" ? 1 : 0
+  depends_on = [helm_release.cilium, helm_release.calico, local_sensitive_file.kube_cluster_yaml]
   metadata {
     name      = "vsphere-csi-node-binding"
     namespace = kubernetes_namespace.vsphere_csi_namespace.0.metadata.0.name
@@ -561,7 +586,8 @@ resource "kubernetes_role_binding" "vsphere_csi_node_binding" {
 }
 
 resource "kubernetes_config_map" "vsphere_csi_internal_feature_states" {
-  count = var.cloud_provider == "vsphere" ? 1 : 0
+  count      = var.cloud_provider == "vsphere" ? 1 : 0
+  depends_on = [helm_release.cilium, helm_release.calico, local_sensitive_file.kube_cluster_yaml]
   metadata {
     name      = "internal-feature-states.csi.vsphere.vmware.com"
     namespace = kubernetes_namespace.vsphere_csi_namespace.0.metadata.0.name
@@ -905,6 +931,9 @@ resource "kubernetes_deployment" "vsphere_csi_controller" {
       }
     }
   }
+  lifecycle {
+    ignore_changes = [metadata]
+  }
 }
 
 resource "kubernetes_daemonset" "vsphere_csi_node" {
@@ -1168,5 +1197,8 @@ resource "kubernetes_daemonset" "vsphere_csi_node" {
         }
       }
     }
+  }
+  lifecycle {
+    ignore_changes = [metadata]
   }
 }
