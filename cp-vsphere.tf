@@ -32,7 +32,7 @@ resource "kubernetes_secret" "cpi_vsphere_creds" {
     format("%s.username", var.vsphere_server) = var.vsphere_username
     format("%s.password", var.vsphere_server) = var.vsphere_password
   }
-  
+
   lifecycle {
     ignore_changes = [metadata]
   }
@@ -642,6 +642,9 @@ resource "kubernetes_service" "vsphere_cloud_controller_manager" {
     }
 
     type = "NodePort"
+  }
+  lifecycle {
+    ignore_changes = [metadata]
   }
 }
 
