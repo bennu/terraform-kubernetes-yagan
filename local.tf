@@ -1,5 +1,5 @@
 locals {
-  api_access       = format("https://%s:6443", length(var.sans) > 0 ? var.sans[0] : length(var.api_server_lb) > 0 ? var.api_server_lb[0] : rke_cluster.cluster.api_server_url)
+  api_access       = length(var.sans) > 0 ? format("https://%s:6443", var.sans[0]) : length(var.api_server_lb) > 0 ? format("https://%s:6443", var.api_server_lb[0]) : rke_cluster.cluster.api_server_url
   api_access_regex = "/https://\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}:6443/"
   cluster_name     = var.cluster_name == "" ? format("k8s-cluster-%s", local.resource_naming) : var.cluster_name
   etcd_extra_args  = merge({ election-timeout = "5000", heartbeat-interval = "500" }, var.etcd_extra_args)
@@ -37,10 +37,11 @@ locals {
   resource_naming = length(random_string.resource_naming) == 0 ? var.resource_naming : random_string.resource_naming.0.result
   sans            = compact(concat(var.sans, var.api_server_lb))
   # versions
-  cilium_version      = "1.9.1"
-  calico_version      = "3.24.1"
-  argocd_version      = "5.5.24"
-  kubernetes_version  = var.kubernetes_version != "" ? var.kubernetes_version : local.rke_version
-  rke_version         = "v1.23.7-rancher1-1"
-  vsphere_cpi_version = "gcr.io/cloud-provider-vsphere/cpi/release/manager:v1.23.2"
+  cilium_version         = "1.12.5"
+  calico_version         = "3.24.1"
+  metrics_server_version = "3.8.3"
+  argocd_version         = "5.5.24"
+  kubernetes_version     = var.kubernetes_version != "" ? var.kubernetes_version : local.rke_version
+  rke_version            = "v1.24.4-rancher1-1"
+  vsphere_cpi_version    = "gcr.io/cloud-provider-vsphere/cpi/release/manager:v1.23.2"
 }

@@ -3,6 +3,7 @@ resource "rke_cluster" "cluster" {
   cluster_name          = local.cluster_name
   ignore_docker_version = var.ignore_docker_version
   kubernetes_version    = local.kubernetes_version
+  enable_cri_dockerd    = var.enable_cri_dockerd
 
   authentication {
     strategy = "x509"
@@ -233,7 +234,7 @@ resource "rke_cluster" "cluster" {
 resource "local_sensitive_file" "kube_cluster_yaml" {
   # Workaround: https://github.com/rancher/rke/issues/705
   count           = var.write_kubeconfig ? 1 : 0
-  file_permission = "0644"
+  file_permission = "0600"
   filename        = format("%s/%s", path.root, "kube_config_cluster.yaml")
   content         = replace(rke_cluster.cluster.kube_config_yaml, local.api_access_regex, local.api_access)
 }
@@ -246,14 +247,16 @@ resource "local_sensitive_file" "cluster_yaml" {
 }
 
 resource "helm_release" "cilium" {
-  count      = var.install_cilium ? 1 : 0
-  depends_on = [local_sensitive_file.kube_cluster_yaml, rke_cluster.cluster]
-  name       = "cilium"
-  atomic     = true
-  repository = "https://helm.cilium.io"
-  chart      = "cilium"
-  version    = local.cilium_version
-  namespace  = "kube-system"
+  count            = var.install_cilium ? 1 : 0
+  depends_on       = [local_sensitive_file.kube_cluster_yaml, rke_cluster.cluster]
+  name             = "cilium"
+  repository       = "https://helm.cilium.io"
+  chart            = "cilium"
+  version          = local.cilium_version
+  namespace        = "cilium"
+  create_namespace = true
+  timeout          = 300
+  atomic           = true
   set {
     name  = "hubble.metrics.enabled"
     value = var.hubble_metrics
@@ -341,6 +344,17 @@ resource "helm_release" "calico" {
   ]
 }
 
+resource "helm_release" "metrics_server" {
+  count      = var.install_metrics_server ? 1 : 0
+  depends_on = [helm_release.cilium, helm_release.calico, local_sensitive_file.kube_cluster_yaml]
+  name       = "metrics-server"
+  repository = "https://kubernetes-sigs.github.io/metrics-server/"
+  chart      = "metrics-server"
+  version    = local.metrics_server_version
+  namespace  = "kube-system"
+  timeout    = 240
+}
+
 resource "helm_release" "argocd" {
   count            = var.install_argocd ? 1 : 0
   depends_on       = [helm_release.cilium, helm_release.calico, local_sensitive_file.kube_cluster_yaml]
@@ -350,7 +364,7 @@ resource "helm_release" "argocd" {
   version          = local.argocd_version
   namespace        = "argo-cd"
   create_namespace = true
-  timeout          = 210
+  timeout          = 240
   set {
     name  = "server.extraArgs"
     value = "{--insecure,--request-timeout='5m'}"

@@ -4,15 +4,15 @@
 
 | Name | Version |
 |------|---------|
-| terraform | `>= 0.13` |
-| rke | `>= 1.1.3` |
+| terraform | `>= 1.3.7` |
+| rke | `>= 1.3.4` |
 
 ### Providers
 
 | Name | Version |
 |------|---------|
-| helm | `2.0.1` |
-| kubernetes | `1.13.3` |
+| helm | `2.8.0` |
+| kubernetes | `2.16.1` |
 
 ## Some considerations
 
@@ -60,6 +60,7 @@
 | drain_grace_period | Grace period to wait for node to drain | `string` | `"-1"` | no |
 | drain_on_upgrade | Do drain operations on upgrades | `bool` | `true` | no |
 | drain_timeout | Time to wait for node to drain | `number` | `60` | no |
+| enable_cri_dockerd | Enable/Disable CRI dockerd for kubelet (Required on K8s v1.24+) | `bool` | `true` | no |
 | enforce_node_allocatable | Enforce allocatable resources | `string` | `"pods,system-reserved,kube-reserved"` | no |
 | etcd_backup_interval_hours | Interval hours for etcd backups | `number` | `8` | no |
 | etcd_backup_retention | Amount of backups to keep in parallel | `number` | `6` | no |
@@ -83,7 +84,9 @@
 | ignore_daemon_sets_on_drain | Drain despite of daemonset | `bool` | `true` | no |
 | ignore_docker_version | Do not check docker version when deploying RKE | `bool` | `true` | no |
 | ingress_provider | Deploy RKE built-in ingress controller | `string` | `"none"` | no |
-| kube_api_extra_args | A map of extra args for api-server | `map` | `{}` | no |
+| install_argocd | Decides if Argo CD operator must be installed after the cluster is deployed | `bool` | `false` | no |
+| install_calico | Decides if Calico CNI must be installed | `bool` | `false` | no |
+| install_cilium | Decides if Cilium CNI must be installed | `bool` | `true` | no |
 | kube_api_extra_binds | A list of host volumes to bind to api-server | `list` | `[]` | no |
 | kube_api_extra_env | A list of env vars to prepend to api-server | `list` | `[]` | no |
 | kube_controller_extra_args | A map of extra args for controller | `map` | `{}` | no |
@@ -145,3 +148,33 @@
 | cluster_name | Kubernetes cluster name |
 | kube_admin_user | Kubernetes admin user |
 | kubeconfig | Kubernetes admin kubeconfig |
+
+## Usage
+
+```hcl
+module "cluster" {
+  source = "git@github.com:bennu/terraform-kubernetes-yagan.git"
+
+  private_key           = file("/path/to/privatekey.pem")
+  node_user             = "root"
+  nodes = {
+    node-name-1 = [{
+      ip     = "1.1.1.1"
+      type   = ["controlplane", "etcd"]
+      labels = {}
+      taints = []
+    }],
+    node-name-2 = [{
+      ip     = "2.2.2.2"
+      type   = ["worker"]
+      labels = {}
+      taints = []
+    }]
+  }
+  # Choose one of the above CNI to install.
+  install_cilium           = true
+  install_calico           = false
+  cluster_cidr             = "10.42.0.0/16"
+  service_cluster_ip_range = "10.43.0.0/16"
+}
+```
