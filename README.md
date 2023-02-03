@@ -5,14 +5,44 @@
 | Name | Version |
 |------|---------|
 | terraform | `>= 1.3.7` |
-| rke | `>= 1.3.4` |
 
-### Providers
+## Providers
 
 | Name | Version |
 |------|---------|
+| rke | `1.3.4` |
 | helm | `2.8.0` |
 | kubernetes | `2.16.1` |
+
+## Usage
+
+```hcl
+module "cluster" {
+  source = "git@github.com:bennu/terraform-kubernetes-yagan.git"
+
+  private_key           = file("/path/to/privatekey.pem")
+  node_user             = "root"
+  nodes = {
+    node-name-1 = [{
+      ip     = "1.1.1.1"
+      type   = ["controlplane", "etcd"]
+      labels = {}
+      taints = []
+    }],
+    node-name-2 = [{
+      ip     = "2.2.2.2"
+      type   = ["worker"]
+      labels = {}
+      taints = []
+    }]
+  }
+  # Choose one of the above CNI to install.
+  install_cilium           = true
+  install_calico           = false
+  cluster_cidr             = "10.42.0.0/16"
+  service_cluster_ip_range = "10.43.0.0/16"
+}
+```
 
 ## Some considerations
 
@@ -148,33 +178,3 @@
 | cluster_name | Kubernetes cluster name |
 | kube_admin_user | Kubernetes admin user |
 | kubeconfig | Kubernetes admin kubeconfig |
-
-## Usage
-
-```hcl
-module "cluster" {
-  source = "git@github.com:bennu/terraform-kubernetes-yagan.git"
-
-  private_key           = file("/path/to/privatekey.pem")
-  node_user             = "root"
-  nodes = {
-    node-name-1 = [{
-      ip     = "1.1.1.1"
-      type   = ["controlplane", "etcd"]
-      labels = {}
-      taints = []
-    }],
-    node-name-2 = [{
-      ip     = "2.2.2.2"
-      type   = ["worker"]
-      labels = {}
-      taints = []
-    }]
-  }
-  # Choose one of the above CNI to install.
-  install_cilium           = true
-  install_calico           = false
-  cluster_cidr             = "10.42.0.0/16"
-  service_cluster_ip_range = "10.43.0.0/16"
-}
-```
