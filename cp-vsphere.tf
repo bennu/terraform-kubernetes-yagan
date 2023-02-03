@@ -338,7 +338,7 @@ datacenters = "${var.vsphere_datacenter}"
 }
 
 # vSphere CSI Driver
-# https://raw.githubusercontent.com/kubernetes-sigs/vsphere-csi-driver/v2.6.0/manifests/vanilla/vsphere-csi-driver.yaml
+# https://raw.githubusercontent.com/kubernetes-sigs/vsphere-csi-driver/v2.6.2/manifests/vanilla/vsphere-csi-driver.yaml
 
 resource "kubernetes_csi_driver_v1" "vsphere_csi_vmware_com" {
   count      = var.cloud_provider == "vsphere" ? 1 : 0
@@ -734,7 +734,7 @@ resource "kubernetes_deployment" "vsphere_csi_controller" {
 
         container {
           name              = "vsphere-csi-controller"
-          image             = "gcr.io/cloud-provider-vsphere/csi/release/driver:v2.6.0"
+          image             = "gcr.io/cloud-provider-vsphere/csi/release/driver:v2.6.2"
           args              = ["--fss-name=internal-feature-states.csi.vsphere.vmware.com", "--fss-namespace=$(CSI_NAMESPACE)"]
           image_pull_policy = "Always"
 
@@ -836,7 +836,7 @@ resource "kubernetes_deployment" "vsphere_csi_controller" {
 
         container {
           name              = "vsphere-syncer"
-          image             = "gcr.io/cloud-provider-vsphere/csi/release/syncer:v2.6.0"
+          image             = "gcr.io/cloud-provider-vsphere/csi/release/syncer:v2.6.2"
           args              = ["--leader-election", "--fss-name=internal-feature-states.csi.vsphere.vmware.com", "--fss-namespace=$(CSI_NAMESPACE)"]
           image_pull_policy = "Always"
 
@@ -1017,7 +1017,7 @@ resource "kubernetes_daemonset" "vsphere_csi_node" {
 
         container {
           name              = "vsphere-csi-node"
-          image             = "gcr.io/cloud-provider-vsphere/csi/release/driver:v2.6.0"
+          image             = "gcr.io/cloud-provider-vsphere/csi/release/driver:v2.6.2"
           args              = ["--fss-name=internal-feature-states.csi.vsphere.vmware.com", "--fss-namespace=$(CSI_NAMESPACE)"]
           image_pull_policy = "Always"
 

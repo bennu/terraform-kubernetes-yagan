@@ -205,7 +205,7 @@ variable "ignore_daemon_sets_on_drain" {
 }
 variable "ignore_docker_version" {
   description = "Do not check docker version when deploying RKE"
-  default     = true
+  default     = false
 }
 variable "ingress_provider" {
   description = "Deploy RKE built-in ingress controller"
@@ -216,12 +216,16 @@ variable "install_argocd" {
   default     = false
 }
 variable "install_calico" {
-  description = "Decides if Calico CNI must be instaled"
-  default     = true
+  description = "Decides if Calico CNI must be installed"
+  default     = false
 }
 variable "install_cilium" {
   description = "Decides if Cilium CNI must be installed"
   default     = true
+}
+variable "install_metrics_server" {
+  description = "Decides if Metrics Server must be installed"
+  default     = false
 }
 variable "kube_api_extra_args" {
   description = "A map of extra args for api-server"
