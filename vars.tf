@@ -29,7 +29,7 @@ variable "cilium_debug" {
 }
 variable "cilium_ipam" {
   description = "IPAM method to use for kubernetes cluster"
-  default     = "kubernetes"
+  default     = "cluster-pool"
 }
 variable "cilium_monitor" {
   description = "This option enables coalescing of tracing events"
@@ -38,10 +38,6 @@ variable "cilium_monitor" {
 variable "cilium_node_init" {
   description = "Initialize nodes for cilium"
   default     = false
-}
-variable "cilium_node_init_restart_pods" {
-  description = "Restart pods not managed by cilium"
-  default     = true
 }
 variable "cilium_operator_prometheus_enabled" {
   description = "Create service monitor for prometheus operator to use"
@@ -70,10 +66,6 @@ variable "cilium_service_monitor_enabled" {
 variable "cilium_tunnel" {
   description = "Encapsulation tunnel to use"
   default     = "vxlan"
-}
-variable "cilium_wait_bfp" {
-  description = "Wait for BPF to be present in order to work"
-  default     = true
 }
 variable "cloud_provider" {
   description = "Cloud provider to deploy"
@@ -222,10 +214,6 @@ variable "install_calico" {
 variable "install_cilium" {
   description = "Decides if Cilium CNI must be installed"
   default     = true
-}
-variable "install_metrics_server" {
-  description = "Decides if Metrics Server must be installed"
-  default     = false
 }
 variable "kube_api_extra_args" {
   description = "A map of extra args for api-server"

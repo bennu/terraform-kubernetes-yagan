@@ -72,7 +72,6 @@ module "cluster" {
 | cilium_ipam | IPAM method to use for kubernetes cluster | `string` | `"kubernetes"` | no |
 | cilium_monitor | This option enables coalescing of tracing events | `string` | `"maximum"` | no |
 | cilium_node_init | Initialize nodes for cilium | `bool` | `false` | no |
-| cilium_node_init_restart_pods | Restart pods not managed by cilium | `bool` | `true` | no |
 | cilium_operator_prometheus_enabled | Create service monitor for prometheus operator to use | `bool` | `true` | no |
 | cilium_operator_replicas | Replicas to create for cilium operator | `number` | `2` | no |
 | cilium_prometheus_enabled | Add annotations to pods for prometheus to monitor | `bool` | `true` | no |
@@ -80,7 +79,6 @@ module "cluster" {
 | cilium_require_ipv4_pod_cidr | Requier Pod cidr to allocate pod IPs | `bool` | `true` | no |
 | cilium_service_monitor_enabled | Create service monitor for cilium | `bool` | `true` | no |
 | cilium_tunnel | Encapsulation tunnel to use | `string` | `"vxlan"` | no |
-| cilium_wait_bfp | Wait for BPF to be present in order to work | `bool` | `true` | no |
 | cloud_provider | Cloud provider to deploy | `string` | `"none"` | no |
 | cloud_provider_vsphere_in_tree | vSphere Cloud Provider in-tree configuration, list of maps | `list(map(string))` | `[]` | no |
 | cluster_cidr | Cluster CIDR for pods IP allocation | `string` | `"10.42.0.0/16"` | no |
