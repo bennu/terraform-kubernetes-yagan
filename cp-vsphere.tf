@@ -482,6 +482,7 @@ resource "kubernetes_cluster_role" "vsphere_csi_controller_role" {
 
 resource "kubernetes_cluster_role_binding" "vsphere_csi_controller_binding" {
   count = var.cloud_provider == "vsphere" ? 1 : 0
+  depends_on = [helm_release.cilium, helm_release.calico, local_sensitive_file.kube_cluster_yaml]
   metadata {
     name = "vsphere-csi-controller-binding"
   }

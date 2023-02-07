@@ -30,7 +30,7 @@ resource "rke_cluster" "cluster" {
   }
 
   monitoring {
-    provider = var.monitoring
+    provider = var.install_cilium ? "none" : var.monitoring
   }
 
   addon_job_timeout = var.addon_job_timeout
@@ -264,23 +264,19 @@ resource "helm_release" "cilium" {
   values = [
     yamlencode(
       {
-        bpf = {
-          monitorAggregation = var.cilium_monitor
-          preallocateMaps    = var.cilium_allocate_bpf
-          waitForMount       = var.cilium_wait_bfp
+        debug = {
+          enabled = var.cilium_debug
         }
         cluster = {
           name = local.cluster_name
         }
-        debug = {
-          enabled = var.cilium_debug
-        }
-        ipam = {
-          mode = var.cilium_ipam
+        priorityClassName = "system-cluster-critical"
+        bpf = {
+          monitorAggregation = var.cilium_monitor
+          preallocateMaps    = var.cilium_allocate_bpf
         }
         hubble = {
           enabled       = var.hubble_enabled
-          listenAddress = ":4244"
           relay = {
             enabled = var.hubble_relay_enabled
           }
@@ -288,22 +284,30 @@ resource "helm_release" "cilium" {
             enabled = var.hubble_ui_enabled
           }
         }
+        ipam = {
+          mode = var.cilium_ipam
+          operator = {
+            clusterPoolIPv4PodCIDRList = [var.cluster_cidr]
+          }
+        }
+        ipv6 = {
+          enabled = false
+        }
         k8s = {
           requireIPv4PodCIDR = var.cilium_require_ipv4_pod_cidr
+        }
+        prometheus = {
+          enabled = var.cilium_prometheus_enabled
+        }
+        tunnel = var.cilium_tunnel
+        operator = {
+          numReplicas       = var.cilium_operator_replicas
+          priorityClassName = "system-cluster-critical"
         }
         nodeinit = {
           enabled           = var.cilium_node_init
           priorityClassName = "system-cluster-critical"
         }
-        operator = {
-          numReplicas       = var.cilium_operator_replicas
-          priorityClassName = "system-cluster-critical"
-        }
-        priorityClassName = "system-cluster-critical"
-        prometheus = {
-          enabled = var.cilium_prometheus_enabled
-        }
-        tunnel = var.cilium_tunnel
       }
     )
   ]
@@ -345,7 +349,7 @@ resource "helm_release" "calico" {
 }
 
 resource "helm_release" "metrics_server" {
-  count      = var.install_metrics_server ? 1 : 0
+  count      = var.install_cilium ? 1 : 0
   depends_on = [helm_release.cilium, helm_release.calico, local_sensitive_file.kube_cluster_yaml]
   name       = "metrics-server"
   repository = "https://kubernetes-sigs.github.io/metrics-server/"
@@ -353,6 +357,13 @@ resource "helm_release" "metrics_server" {
   version    = local.metrics_server_version
   namespace  = "kube-system"
   timeout    = 240
+  values = [
+    yamlencode({
+      hostNetwork = {
+        enabled = true
+      }
+    })
+  ]
 }
 
 resource "helm_release" "argocd" {
@@ -394,7 +405,7 @@ resource "null_resource" "node_cleanup" {
   provisioner "remote-exec" {
     when = destroy
     inline = [
-      "chmod +x /tmp/cleanup.bash && /tmp/cleanup.bash -f -i", "reboot"
+      "chmod +x /tmp/cleanup.bash && /tmp/cleanup.bash -f -i", "(sleep 5;reboot) &"
     ]
   }
 }

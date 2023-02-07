@@ -30,3 +30,7 @@ output "kubeconfig" {
   description = "Kubernetes admin kubeconfig"
   value       = local_sensitive_file.kube_cluster_yaml
 }
+output "kubeconfig_location" {
+  description = "Kubernetes admin kubeconfig location"
+  value       = local_sensitive_file.kube_cluster_yaml.0.filename
+}

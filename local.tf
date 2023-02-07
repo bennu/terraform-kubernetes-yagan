@@ -43,5 +43,5 @@ locals {
   argocd_version         = "5.5.24"
   kubernetes_version     = var.kubernetes_version != "" ? var.kubernetes_version : local.rke_version
   rke_version            = "v1.24.4-rancher1-1"
-  vsphere_cpi_version    = "gcr.io/cloud-provider-vsphere/cpi/release/manager:v1.23.2"
+  vsphere_cpi_version    = "gcr.io/cloud-provider-vsphere/cpi/release/manager:v1.24.3"
 }
