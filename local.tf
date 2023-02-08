@@ -38,7 +38,7 @@ locals {
   sans            = compact(concat(var.sans, var.api_server_lb))
   # versions
   cilium_version         = "1.12.5"
-  calico_version         = "3.24.1"
+  calico_version         = "3.25.0"
   metrics_server_version = "3.8.3"
   argocd_version         = "5.5.24"
   kubernetes_version     = var.kubernetes_version != "" ? var.kubernetes_version : local.rke_version

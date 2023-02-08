@@ -29,7 +29,7 @@ variable "cilium_debug" {
 }
 variable "cilium_ipam" {
   description = "IPAM method to use for kubernetes cluster"
-  default     = "cluster-pool"
+  default     = "kubernetes"
 }
 variable "cilium_monitor" {
   description = "This option enables coalescing of tracing events"

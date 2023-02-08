@@ -286,9 +286,6 @@ resource "helm_release" "cilium" {
         }
         ipam = {
           mode = var.cilium_ipam
-          operator = {
-            clusterPoolIPv4PodCIDRList = [var.cluster_cidr]
-          }
         }
         ipv6 = {
           enabled = false
@@ -317,7 +314,7 @@ resource "helm_release" "calico" {
   count            = var.install_calico ? 1 : 0
   depends_on       = [local_sensitive_file.kube_cluster_yaml, rke_cluster.cluster]
   name             = "calico"
-  repository       = "https://projectcalico.docs.tigera.io/charts"
+  repository       = "https://docs.tigera.io/calico/charts"
   chart            = "tigera-operator"
   version          = local.calico_version
   namespace        = "tigera-operator"
@@ -405,7 +402,7 @@ resource "null_resource" "node_cleanup" {
   provisioner "remote-exec" {
     when = destroy
     inline = [
-      "chmod +x /tmp/cleanup.bash && /tmp/cleanup.bash -f -i", "(sleep 5;reboot) &"
+      "chmod +x /tmp/cleanup.bash && /tmp/cleanup.bash -f -i", "shutdown -r"
     ]
   }
 }
