@@ -10,9 +10,12 @@
 
 | Name | Version |
 |------|---------|
-| rke | `1.3.4` |
-| helm | `2.8.0` |
-| kubernetes | `2.16.1` |
+| [rke](https://github.com/rancher/terraform-provider-rke/releases/tag/v1.3.4) | `1.3.4`  |
+| [helm](https://github.com/hashicorp/terraform-provider-helm/releases/tag/v2.8.0) | `2.8.0` |
+| [kubernetes](https://github.com/hashicorp/terraform-provider-kubernetes/releases/tag/v2.16.1) | `2.16.1` |
+| [local](https://github.com/hashicorp/terraform-provider-local/releases/tag/v2.3.0) | `2.3.0` |
+| [random](https://github.com/hashicorp/terraform-provider-random/releases/tag/v3.4.3) | `3.4.3` |
+
 
 ## Usage
 
@@ -37,7 +40,6 @@ module "cluster" {
     }]
   }
   # Choose one of the above CNI to install.
-  install_cilium           = true
   install_calico           = false
   cluster_cidr             = "10.42.0.0/16"
   service_cluster_ip_range = "10.43.0.0/16"
@@ -48,11 +50,6 @@ module "cluster" {
 
 `always_pull_images`: Enable [always pull images admission controler](https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#alwayspullimages) in the api-server
 
-`cilium_allocate_bpf`: Pre-allocation of map entries allows per-packet latency to be reduced, at the expense of up-front memory allocation for the entries in the maps. Set to `true` to optimize for latency. If this value is modified, then during the next Cilium startup connectivity may be temporarily disrupted for endpoints with active connections
-
-`cilium_debug`: Sets to run Cilium in full debug mode, which enables verbose logging and configures BPF programs to emit more visibility events into the output of `cilium monitor`
-
-`cilium_monitor`: This option enables coalescing of tracing events in `cilium monitor` to only include periodic updates from active flows, or any packets that involve an L4 connection state change. Valid options are `none`, `low`, `medium`, `maximum`
 
 `nodes`: A map of objects containing a list of node names and a IPs for each type (See: [yagan byoi example](https://github.com/bennu/terraform-byoi-yagan/tree/updating#yagan-byoi)
 
@@ -60,6 +57,7 @@ module "cluster" {
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| support_version | Supported version of rke kubernetes : v1.24.4-rancher1-1 - v1.19.16-rancher2-1   | `string` | `v1.24.4-rancher1-1` | yes |
 | nodes | A map of objects containing a list of node names and a IPs for each type | `any` | n/a | yes |
 | private_key | Default private ssh key for nodes | `any` | n/a | yes |
 | addon_job_timeout | Timeout for addons deployment in seconds | `number` | `120` | no |
@@ -67,18 +65,6 @@ module "cluster" {
 | always_pull_images | Enable always pull images admission controler | `bool` | `true` | no |
 | api_server_lb | List of IPs on loadbalancer in front of kube-api-sever(s) | `list` | `[]` | no |
 | cgroup_driver | Driver that the kubelet uses to manipulate cgroups on the host | `string` | `"cgroupfs"` | no |
-| cilium_allocate_bpf | Pre-allocation of map entries allows per-packet latency to be reduced | `bool` | `false` | no |
-| cilium_debug | Sets to run Cilium in full debug mode | `bool` | `true` | no |
-| cilium_ipam | IPAM method to use for kubernetes cluster | `string` | `"kubernetes"` | no |
-| cilium_monitor | This option enables coalescing of tracing events | `string` | `"maximum"` | no |
-| cilium_node_init | Initialize nodes for cilium | `bool` | `false` | no |
-| cilium_operator_prometheus_enabled | Create service monitor for prometheus operator to use | `bool` | `true` | no |
-| cilium_operator_replicas | Replicas to create for cilium operator | `number` | `2` | no |
-| cilium_prometheus_enabled | Add annotations to pods for prometheus to monitor | `bool` | `true` | no |
-| cilium_psp_enabled | Create PodSecurityPolicies for cilium pods | `bool` | `true` | no |
-| cilium_require_ipv4_pod_cidr | Requier Pod cidr to allocate pod IPs | `bool` | `true` | no |
-| cilium_service_monitor_enabled | Create service monitor for cilium | `bool` | `true` | no |
-| cilium_tunnel | Encapsulation tunnel to use | `string` | `"vxlan"` | no |
 | cloud_provider | Cloud provider to deploy | `string` | `"none"` | no |
 | cloud_provider_vsphere_in_tree | vSphere Cloud Provider in-tree configuration, list of maps | `list(map(string))` | `[]` | no |
 | cluster_cidr | Cluster CIDR for pods IP allocation | `string` | `"10.42.0.0/16"` | no |
@@ -114,7 +100,6 @@ module "cluster" {
 | ingress_provider | Deploy RKE built-in ingress controller | `string` | `"none"` | no |
 | install_argocd | Decides if Argo CD operator must be installed after the cluster is deployed | `bool` | `false` | no |
 | install_calico | Decides if Calico CNI must be installed | `bool` | `false` | no |
-| install_cilium | Decides if Cilium CNI must be installed | `bool` | `true` | no |
 | kube_api_extra_binds | A list of host volumes to bind to api-server | `list` | `[]` | no |
 | kube_api_extra_env | A list of env vars to prepend to api-server | `list` | `[]` | no |
 | kube_controller_extra_args | A map of extra args for controller | `map` | `{}` | no |
@@ -163,6 +148,7 @@ module "cluster" {
 | vsphere_username | vSphere username | `string` | `""` | no |
 | write_cluster_yaml | Save rke cluster yaml to a file | `bool` | `false` | no |
 | write_kubeconfig | Save kubeconfig to a file | `bool` | `true` | no |
+
 
 ## Outputs
 
