@@ -26,22 +26,33 @@ locals {
       node-status-update-frequency = var.node_status_update_frequency
     },
   var.kubelet_extra_args)
-  kubeproxy_extra_args = merge(
-    {
-      ipvs-scheduler  = "rr"
-      ipvs-strict-arp = true
-      proxy-mode      = "ipvs"
-    },
+  kubeproxy_extra_args = merge(local.kubeproxy_mode
+    ,
   var.kubeproxy_extra_args)
-  network_plugin  = "none"
+  network_plugin = "none"
+
+  kubeproxy_mode = var.support_version == "v1.24.4-rancher1-1" ? {
+    ipvs-scheduler  = "rr"
+    ipvs-strict-arp = true
+    proxy-mode      = "ipvs"
+    } : {
+    proxy-mode = "iptables"
+
+  }
+
   resource_naming = length(random_string.resource_naming) == 0 ? var.resource_naming : random_string.resource_naming.0.result
   sans            = compact(concat(var.sans, var.api_server_lb))
+
   # versions
-  cilium_version         = "1.12.5"
-  calico_version         = "3.25.0"
-  metrics_server_version = "3.8.3"
-  argocd_version         = "5.5.24"
-  kubernetes_version     = var.kubernetes_version != "" ? var.kubernetes_version : local.rke_version
-  rke_version            = "v1.24.4-rancher1-1"
-  vsphere_cpi_version    = "gcr.io/cloud-provider-vsphere/cpi/release/manager:v1.24.3"
+  addons_version      = lookup(var.addons_version, var.support_version, {})
+  calico_version      = lookup(local.addons_version, "calico_version", "")
+  argocd_version      = lookup(local.addons_version, "argocd_version", "")
+  kubernetes_version  = lookup(local.addons_version, "rke_version", "")
+  vsphere_cpi_version = lookup(local.addons_version, "vsphere_cpi_version", "")
+
+  # install_cp_vsphere = var.cloud_provider == "vsphere" ? true : false
+  install_cp_vsphere = var.cloud_provider == "vsphere" ? 1 : 0
+
+
+
 }

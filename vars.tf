@@ -19,54 +19,6 @@ variable "cgroup_driver" {
   description = "Driver that the kubelet uses to manipulate cgroups on the host"
   default     = "cgroupfs"
 }
-variable "cilium_allocate_bpf" {
-  description = "Pre-allocation of map entries allows per-packet latency to be reduced"
-  default     = false
-}
-variable "cilium_debug" {
-  description = "Sets to run Cilium in full debug mode"
-  default     = true
-}
-variable "cilium_ipam" {
-  description = "IPAM method to use for kubernetes cluster"
-  default     = "kubernetes"
-}
-variable "cilium_monitor" {
-  description = "This option enables coalescing of tracing events"
-  default     = "maximum"
-}
-variable "cilium_node_init" {
-  description = "Initialize nodes for cilium"
-  default     = false
-}
-variable "cilium_operator_prometheus_enabled" {
-  description = "Create service monitor for prometheus operator to use"
-  default     = true
-}
-variable "cilium_operator_replicas" {
-  description = "Replicas to create for cilium operator"
-  default     = 2
-}
-variable "cilium_prometheus_enabled" {
-  description = "Add annotations to pods for prometheus to monitor"
-  default     = true
-}
-variable "cilium_psp_enabled" {
-  description = "Create PodSecurityPolicies for cilium pods"
-  default     = true
-}
-variable "cilium_require_ipv4_pod_cidr" {
-  description = "Requier Pod cidr to allocate pod IPs"
-  default     = true
-}
-variable "cilium_service_monitor_enabled" {
-  description = "Create service monitor for cilium"
-  default     = true
-}
-variable "cilium_tunnel" {
-  description = "Encapsulation tunnel to use"
-  default     = "vxlan"
-}
 variable "cloud_provider" {
   description = "Cloud provider to deploy"
   default     = "none"
@@ -211,10 +163,7 @@ variable "install_calico" {
   description = "Decides if Calico CNI must be installed"
   default     = false
 }
-variable "install_cilium" {
-  description = "Decides if Cilium CNI must be installed"
-  default     = true
-}
+
 variable "kube_api_extra_args" {
   description = "A map of extra args for api-server"
   default     = {}
@@ -427,4 +376,31 @@ variable "cloud_provider_vsphere_in_tree" {
   description = "vSphere Cloud Provider in-tree configuration, list of maps"
   type        = list(map(string))
   default     = []
+}
+
+variable "addons_version" {
+  description = "value"
+  type        = map(map(string))
+  default = {
+    "v1.24.4-rancher1-1" = {
+      calico_version      = "3.25.0"
+      argocd_version      = "5.5.24"
+      rke_version         = "v1.24.4-rancher1-1"
+      vsphere_cpi_version = "gcr.io/cloud-provider-vsphere/cpi/release/manager:v1.24.3"
+    },
+    "v1.19.16-rancher2-1" = {
+      calico_version      = "3.20.0"
+      argocd_version      = "5.5.24"
+      rke_version         = "v1.19.16-rancher2-1"
+      vsphere_cpi_version = "gcr.io/cloud-provider-vsphere/cpi/release/manager:v1.19.0"
+    }
+  }
+
+}
+
+variable "support_version" {
+  type        = string
+  description = ""
+  default = "v1.24.4-rancher1-1"
+
 }

@@ -30,7 +30,8 @@ resource "rke_cluster" "cluster" {
   }
 
   monitoring {
-    provider = var.install_cilium ? "none" : var.monitoring
+    provider = var.monitoring
+
   }
 
   addon_job_timeout = var.addon_job_timeout
@@ -246,69 +247,6 @@ resource "local_sensitive_file" "cluster_yaml" {
   content         = rke_cluster.cluster.rke_cluster_yaml
 }
 
-resource "helm_release" "cilium" {
-  count            = var.install_cilium ? 1 : 0
-  depends_on       = [local_sensitive_file.kube_cluster_yaml, rke_cluster.cluster]
-  name             = "cilium"
-  repository       = "https://helm.cilium.io"
-  chart            = "cilium"
-  version          = local.cilium_version
-  namespace        = "cilium"
-  create_namespace = true
-  timeout          = 300
-  atomic           = true
-  set {
-    name  = "hubble.metrics.enabled"
-    value = var.hubble_metrics
-  }
-  values = [
-    yamlencode(
-      {
-        debug = {
-          enabled = var.cilium_debug
-        }
-        cluster = {
-          name = local.cluster_name
-        }
-        priorityClassName = "system-cluster-critical"
-        bpf = {
-          monitorAggregation = var.cilium_monitor
-          preallocateMaps    = var.cilium_allocate_bpf
-        }
-        hubble = {
-          enabled       = var.hubble_enabled
-          relay = {
-            enabled = var.hubble_relay_enabled
-          }
-          ui = {
-            enabled = var.hubble_ui_enabled
-          }
-        }
-        ipam = {
-          mode = var.cilium_ipam
-        }
-        ipv6 = {
-          enabled = false
-        }
-        k8s = {
-          requireIPv4PodCIDR = var.cilium_require_ipv4_pod_cidr
-        }
-        prometheus = {
-          enabled = var.cilium_prometheus_enabled
-        }
-        tunnel = var.cilium_tunnel
-        operator = {
-          numReplicas       = var.cilium_operator_replicas
-          priorityClassName = "system-cluster-critical"
-        }
-        nodeinit = {
-          enabled           = var.cilium_node_init
-          priorityClassName = "system-cluster-critical"
-        }
-      }
-    )
-  ]
-}
 
 resource "helm_release" "calico" {
   count            = var.install_calico ? 1 : 0
@@ -345,27 +283,11 @@ resource "helm_release" "calico" {
   ]
 }
 
-resource "helm_release" "metrics_server" {
-  count      = var.install_cilium ? 1 : 0
-  depends_on = [helm_release.cilium, helm_release.calico, local_sensitive_file.kube_cluster_yaml]
-  name       = "metrics-server"
-  repository = "https://kubernetes-sigs.github.io/metrics-server/"
-  chart      = "metrics-server"
-  version    = local.metrics_server_version
-  namespace  = "kube-system"
-  timeout    = 240
-  values = [
-    yamlencode({
-      hostNetwork = {
-        enabled = true
-      }
-    })
-  ]
-}
 
 resource "helm_release" "argocd" {
-  count            = var.install_argocd ? 1 : 0
-  depends_on       = [helm_release.cilium, helm_release.calico, local_sensitive_file.kube_cluster_yaml]
+  count      = var.install_argocd ? 1 : 0
+  depends_on = [helm_release.calico, local_sensitive_file.kube_cluster_yaml]
+
   name             = "argocd"
   repository       = "https://argoproj.github.io/argo-helm"
   chart            = "argo-cd"
@@ -405,4 +327,21 @@ resource "null_resource" "node_cleanup" {
       "chmod +x /tmp/cleanup.bash && /tmp/cleanup.bash -f -i", "shutdown -r"
     ]
   }
+}
+
+
+resource "null_resource" "nodes_taint" {
+
+  count = local.install_cp_vsphere
+
+  provisioner "local-exec" {
+    command = "kubectl --kubeconfig $KUBECONFIG  taint nodes --all=true  node.cloudprovider.kubernetes.io/uninitialized=true:NoSchedule"
+
+    environment = {
+      KUBECONFIG = local_sensitive_file.kube_cluster_yaml.0.filename
+    }
+  }
+
+
+  depends_on = [helm_release.calico, local_sensitive_file.kube_cluster_yaml]
 }
