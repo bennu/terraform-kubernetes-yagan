@@ -264,11 +264,47 @@ locals {
 }
 
 
+resource "kubernetes_cluster_role_binding" "vsphere_system_cloud_controller_manager" {
+  count = local.install_cp_vsphere
+
+  depends_on = [helm_release.calico, local_sensitive_file.kube_cluster_yaml]
+  metadata {
+    name = "system:cloud-controller-manager"
+    labels = {
+      # version 19 es cluster-role-binding
+      vsphere-cpi-infra =  local.check_rancher1_24  ?  "role-binding" : "cluster-role-binding"
+      component         = "cloud-controller-manager"
+    }
+  }
+
+  subject {
+    api_group = ""
+    kind      = "ServiceAccount"
+    name      = kubernetes_service_account.vsphere_cloud_controller_manager.0.metadata.0.name      # "cloud-controller-manager" 
+    namespace = kubernetes_service_account.vsphere_cloud_controller_manager.0.metadata.0.namespace # "kube-system"
+  }
+
+  subject {
+    api_group = ""
+    kind      = "User"
+    name      = "cloud-controller-manager"
+  }
+
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind      = "ClusterRole"
+    name      = kubernetes_cluster_role.vsphere_system_cloud_controller_manager.0.metadata.0.name # "system:cloud-controller-manager"
+  }
+}
+
+
+
+
 #cambiar este  cluster rol
 resource "kubernetes_cluster_role" "vsphere_csi_node_cluster_role" {
   count = local.install_cp_vsphere
   metadata {
-    name = "vsphere-csi-node-cluster-role"
+    name =  local.check_rancher1_24 ? "vsphere-csi-node-cluster-role" : "vsphere-csi-node-role"
   }
   rule {
     api_groups = ["cns.vmware.com"]
@@ -357,16 +393,36 @@ resource "kubernetes_deployment" "vsphere_csi_controller" {
         service_account_name            = kubernetes_service_account.vsphere_csi_controller.0.metadata.0.name
         automount_service_account_token = true
 
-        toleration {
-          key      = "node-role.kubernetes.io/master"
-          operator = "Exists"
-          effect   = "NoSchedule"
+
+        dynamic "toleration" {
+          for_each = local.check_rancher1_19 ? [1] : []
+          content {
+            key      = "node-role.kubernetes.io/controlplane"
+            operator = "Exists"
+            effect   = "NoSchedule"
+          }
+
         }
 
-        toleration {
-          key      = "node-role.kubernetes.io/control-plane"
-          operator = "Exists"
-          effect   = "NoSchedule"
+
+        dynamic "toleration" {
+          for_each = local.check_rancher1_24 ? [1] : []
+          content {
+            key      = "node-role.kubernetes.io/master"
+            operator = "Exists"
+            effect   = "NoSchedule"
+          }
+
+        }
+
+        dynamic "toleration" {
+          for_each = local.check_rancher1_24 ? [1] : []
+          content {
+            key      = "node-role.kubernetes.io/control-plane"
+            operator = "Exists"
+            effect   = "NoSchedule"
+          }
+
         }
 
         dns_policy = "Default"
@@ -664,7 +720,7 @@ resource "kubernetes_daemonset" "vsphere_csi_node" {
         container {
           name  = "node-driver-registrar"
           image = local.vsphere_csi_node_images["node-driver-registrar_img"] #"k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.5.1"
-          args  = local.vsphere_csi_node_images["node-driver-registrar_args"] 
+          args  = local.vsphere_csi_node_images["node-driver-registrar_args"]
 
           env {
             name  = "ADDRESS"
@@ -691,6 +747,7 @@ resource "kubernetes_daemonset" "vsphere_csi_node" {
             content {
               container_port = 9809
               name           = "healthz"
+              host_port      = 9809
             }
 
           }
