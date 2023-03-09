@@ -111,38 +111,7 @@ resource "kubernetes_role_binding" "vsphere_servicecatalog_apiserver_authenticat
   }
 }
 
-resource "kubernetes_cluster_role_binding" "vsphere_system_cloud_controller_manager" {
-  count = local.install_cp_vsphere
 
-  depends_on = [helm_release.calico, local_sensitive_file.kube_cluster_yaml]
-  metadata {
-    name = "system:cloud-controller-manager"
-    labels = {
-      # version 19 es cluster-role-binding
-      vsphere-cpi-infra = "role-binding"
-      component         = "cloud-controller-manager"
-    }
-  }
-
-  subject {
-    api_group = ""
-    kind      = "ServiceAccount"
-    name      = kubernetes_service_account.vsphere_cloud_controller_manager.0.metadata.0.name      # "cloud-controller-manager" 
-    namespace = kubernetes_service_account.vsphere_cloud_controller_manager.0.metadata.0.namespace # "kube-system"
-  }
-
-  subject {
-    api_group = ""
-    kind      = "User"
-    name      = "cloud-controller-manager"
-  }
-
-  role_ref {
-    api_group = "rbac.authorization.k8s.io"
-    kind      = "ClusterRole"
-    name      = kubernetes_cluster_role.vsphere_system_cloud_controller_manager.0.metadata.0.name # "system:cloud-controller-manager"
-  }
-}
 
 resource "kubernetes_cluster_role" "vsphere_system_cloud_controller_manager" {
   count = local.install_cp_vsphere
@@ -217,6 +186,9 @@ resource "kubernetes_cluster_role" "vsphere_system_cloud_controller_manager" {
   }
 }
 
+
+
+
 resource "kubernetes_daemonset" "vsphere_cloud_controller_manager" {
   count = local.install_cp_vsphere
 
@@ -262,6 +234,7 @@ resource "kubernetes_daemonset" "vsphere_cloud_controller_manager" {
           operator = "Exists"
           effect   = "NoSchedule"
         }
+
         #ver por que esta comentada esta toleration en 1.24
         toleration {
           key      = "node.kubernetes.io/not-ready"
@@ -513,7 +486,7 @@ resource "kubernetes_service" "vsphere_cloud_controller_manager" {
       app = "vsphere-csi-controller"
     }
 
-    type = "NodePort" #tipo de servicio no especificado 
+    type = local.ccm_serviceType #tipo de servicio no especificado 
   }
   lifecycle {
     ignore_changes = [metadata]

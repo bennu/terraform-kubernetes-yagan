@@ -43,6 +43,8 @@ locals {
   resource_naming = length(random_string.resource_naming) == 0 ? var.resource_naming : random_string.resource_naming.0.result
   sans            = compact(concat(var.sans, var.api_server_lb))
 
+  ccm_serviceType = var.support_version == "v1.24.4-rancher1-1" ? "NodePort" : "ClusterIP"
+
   # versions
   addons_version      = lookup(var.addons_version, var.support_version, {})
   calico_version      = lookup(local.addons_version, "calico_version", "")

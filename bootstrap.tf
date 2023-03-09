@@ -255,10 +255,11 @@ resource "helm_release" "calico" {
   repository       = "https://docs.tigera.io/calico/charts"
   chart            = "tigera-operator"
   version          = local.calico_version
-  namespace        = "tigera-operator"
+  namespace        = local.check_rancher1_19 ? "operator-tigera" : "tigera-operator"
   create_namespace = true
   timeout          = 300
   atomic           = true
+  replace          = local.check_rancher1_19 ? true : false
   values = [
     yamlencode({
       installation = {
