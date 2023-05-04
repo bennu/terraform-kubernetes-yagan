@@ -255,7 +255,7 @@ resource "helm_release" "calico" {
   repository       = "https://docs.tigera.io/calico/charts"
   chart            = "tigera-operator"
   version          = local.calico_version
-  namespace        = var.namespace_calico
+  namespace        = local.check_rancher1_19 ? "operator-tigera" : "tigera-operator"
   create_namespace = true
   timeout          = 300
   atomic           = true
