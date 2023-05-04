@@ -404,9 +404,3 @@ variable "support_version" {
   default = "v1.24.4-rancher1-1"
 
 }
-
-variable "namespace_calico" {
-  type = string
-  description = "value"
-  default = "tigera-operator"
-}
