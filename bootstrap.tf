@@ -75,7 +75,7 @@ resource "rke_cluster" "cluster" {
 
     content {
       address           = nodes.value.ip
-      hostname_override = nodes.value.name
+      hostname_override = lower(nodes.value.name)
       internal_address  = nodes.value.ip
       labels            = nodes.value.labels
       node_name         = nodes.value.name
