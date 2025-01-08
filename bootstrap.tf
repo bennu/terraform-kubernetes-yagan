@@ -75,7 +75,7 @@ resource "rke_cluster" "cluster" {
 
     content {
       address           = nodes.value.ip
-      hostname_override = nodes.value.name
+      hostname_override = lower(nodes.value.name)
       internal_address  = nodes.value.ip
       labels            = nodes.value.labels
       node_name         = nodes.value.name
@@ -255,7 +255,7 @@ resource "helm_release" "calico" {
   repository       = "https://docs.tigera.io/calico/charts"
   chart            = "tigera-operator"
   version          = local.calico_version
-  namespace        = local.check_rancher1_19 ? "operator-tigera" : "tigera-operator"
+  namespace        = coalesce(var.namespace_calico, local.namespace_calico)
   create_namespace = true
   timeout          = 300
   atomic           = true
