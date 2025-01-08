@@ -14,11 +14,6 @@ locals {
   var.kube_controller_extra_args)
   kubelet_extra_args = merge(
     {
-      # enforce-node-allocatable     = var.enforce_node_allocatable
-      # kube-reserved                = var.kube_reserved
-      # kube-reserved-cgroup         = var.kube_reserved_cgroup
-      # system-reserved              = var.system_reserved
-      # system-reserved-cgroup       = var.system_reserved_cgroup
       allowed-unsafe-sysctls       = "net.*"
       cgroup-driver                = var.cgroup_driver
       eviction-hard                = var.eviction_hard
@@ -31,7 +26,7 @@ locals {
   var.kubeproxy_extra_args)
   network_plugin = "none"
 
-  kubeproxy_mode = var.support_version == "v1.24.4-rancher1-1" ? {
+  kubeproxy_mode = var.support_version == "v1.24.17-rancher1-1" ? {
     ipvs-scheduler  = "rr"
     ipvs-strict-arp = true
     proxy-mode      = "ipvs"
@@ -43,7 +38,7 @@ locals {
   resource_naming = length(random_string.resource_naming) == 0 ? var.resource_naming : random_string.resource_naming.0.result
   sans            = compact(concat(var.sans, var.api_server_lb))
 
-  ccm_serviceType = var.support_version == "v1.24.4-rancher1-1" ? "NodePort" : "ClusterIP"
+  ccm_serviceType = var.support_version == "v1.24.17-rancher1-1" ? "NodePort" : "ClusterIP"
 
   # versions
   addons_version      = lookup(var.addons_version, var.support_version, {})
@@ -51,9 +46,7 @@ locals {
   argocd_version      = lookup(local.addons_version, "argocd_version", "")
   kubernetes_version  = lookup(local.addons_version, "rke_version", "")
   vsphere_cpi_version = lookup(local.addons_version, "vsphere_cpi_version", "")
-
-  # install_cp_vsphere = var.cloud_provider == "vsphere" ? true : false
-  install_cp_vsphere = var.cloud_provider == "vsphere" ? 1 : 0
+  install_cp_vsphere  = var.cloud_provider == "vsphere" ? 1 : 0
 
 
 

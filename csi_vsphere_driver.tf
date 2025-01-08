@@ -1,7 +1,8 @@
 
 locals {
-  check_rancher1_24 = var.support_version == "v1.24.4-rancher1-1" ? true : false
+  check_rancher1_24 = var.support_version == "v1.24.17-rancher1-1" ? true : false
   check_rancher1_19 = var.support_version == "v1.19.16-rancher2-1" ? true : false
+  namespace_calico  = local.check_rancher1_19 ? "operator-tigera" : "tigera-operator"
 
   csi_controller_rules_maps = {
     "v1.19.16-rancher2-1" = [
@@ -71,7 +72,7 @@ locals {
         "resources"  = ["volumeattachments/status"]
       }
     ]
-    "v1.24.4-rancher1-1" = [
+    "v1.24.17-rancher1-1" = [
       {
         "verbs"      = ["get", "list", "watch"]
         "api_groups" = [""]
@@ -193,7 +194,7 @@ locals {
       "improved-volume-topology" = "false"
 
     },
-    "v1.24.4-rancher1-1" = {
+    "v1.24.17-rancher1-1" = {
       "csi-migration"                     = "false"
       "csi-auth-check"                    = "true"
       "online-volume-extend"              = "true"
@@ -222,7 +223,7 @@ locals {
       "csi-provisioner"        = "k8s.gcr.io/sig-storage/csi-provisioner:v2.2.0"
 
     },
-    "v1.24.4-rancher1-1" = {
+    "v1.24.17-rancher1-1" = {
       "csi-attacher"           = "k8s.gcr.io/sig-storage/csi-attacher:v3.4.0",
       "csi-resizer"            = "k8s.gcr.io/sig-storage/csi-resizer:v1.4.0",
       "vsphere-csi-controller" = "gcr.io/cloud-provider-vsphere/csi/release/driver:v2.6.2",
@@ -243,7 +244,7 @@ locals {
       "vsphere-csi-node" = "gcr.io/cloud-provider-vsphere/csi/release/driver:v2.3.2"
       "liveness-probe"   = "k8s.gcr.io/sig-storage/livenessprobe:v2.2.0"
     },
-    "v1.24.4-rancher1-1" = {
+    "v1.24.17-rancher1-1" = {
 
       "node-driver-registrar_img"  = "k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.5.1"
       "node-driver-registrar_args" = ["--v=5", "--csi-address=$(ADDRESS)", "--kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)"]
@@ -272,7 +273,7 @@ resource "kubernetes_cluster_role_binding" "vsphere_system_cloud_controller_mana
     name = "system:cloud-controller-manager"
     labels = {
       # version 19 es cluster-role-binding
-      vsphere-cpi-infra =  local.check_rancher1_24  ?  "role-binding" : "cluster-role-binding"
+      vsphere-cpi-infra = local.check_rancher1_24 ? "role-binding" : "cluster-role-binding"
       component         = "cloud-controller-manager"
     }
   }
@@ -304,7 +305,7 @@ resource "kubernetes_cluster_role_binding" "vsphere_system_cloud_controller_mana
 resource "kubernetes_cluster_role" "vsphere_csi_node_cluster_role" {
   count = local.install_cp_vsphere
   metadata {
-    name =  local.check_rancher1_24 ? "vsphere-csi-node-cluster-role" : "vsphere-csi-node-role"
+    name = local.check_rancher1_24 ? "vsphere-csi-node-cluster-role" : "vsphere-csi-node-role"
   }
   rule {
     api_groups = ["cns.vmware.com"]

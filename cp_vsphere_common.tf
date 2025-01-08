@@ -486,7 +486,7 @@ resource "kubernetes_service" "vsphere_cloud_controller_manager" {
       app = "vsphere-csi-controller"
     }
 
-    type = local.ccm_serviceType #tipo de servicio no especificado 
+    type = local.ccm_serviceType
   }
   lifecycle {
     ignore_changes = [metadata]

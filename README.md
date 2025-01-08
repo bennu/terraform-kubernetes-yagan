@@ -57,7 +57,7 @@ module "cluster" {
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| support_version | Supported version of rke kubernetes : v1.24.4-rancher1-1 - v1.19.16-rancher2-1   | `string` | `v1.24.4-rancher1-1` | yes |
+| support_version | Supported version of rke kubernetes : v1.24.17-rancher1-1 - v1.19.16-rancher2-1   | `string` | `v1.24.17-rancher1-1` | yes |
 | nodes | A map of objects containing a list of node names and a IPs for each type | `any` | n/a | yes |
 | private_key | Default private ssh key for nodes | `any` | n/a | yes |
 | addon_job_timeout | Timeout for addons deployment in seconds | `number` | `120` | no |
@@ -162,3 +162,4 @@ module "cluster" {
 | cluster_name | Kubernetes cluster name |
 | kube_admin_user | Kubernetes admin user |
 | kubeconfig | Kubernetes admin kubeconfig |
+

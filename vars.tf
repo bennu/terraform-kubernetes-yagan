@@ -382,10 +382,10 @@ variable "addons_version" {
   description = "value"
   type        = map(map(string))
   default = {
-    "v1.24.4-rancher1-1" = {
+    "v1.24.17-rancher1-1" = {
       calico_version      = "3.25.0"
       argocd_version      = "5.5.24"
-      rke_version         = "v1.24.4-rancher1-1"
+      rke_version         = "v1.24.17-rancher1-1"
       vsphere_cpi_version = "gcr.io/cloud-provider-vsphere/cpi/release/manager:v1.24.3"
     },
     "v1.19.16-rancher2-1" = {
@@ -401,6 +401,12 @@ variable "addons_version" {
 variable "support_version" {
   type        = string
   description = ""
-  default = "v1.24.4-rancher1-1"
+  default     = "v1.24.17-rancher1-1"
 
+}
+
+variable "namespace_calico" {
+  type        = string
+  description = "Nombre del calico personalizado"
+  default     = ""
 }
